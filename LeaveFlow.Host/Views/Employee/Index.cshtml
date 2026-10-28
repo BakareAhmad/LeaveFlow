@@ -1,0 +1,59 @@
+@model List<EmployeeDto>
+
+@{
+    ViewData["Title"] = "Employees";
+}
+
+<div class="flex flex-wrap items-center justify-between gap-[10px] mb-[1.5pc]">
+    <div>
+        <h1 class="text-[28px] font-[700]">Employees</h1>
+        <p class="text-[#687068] mt-[4px]">Manage staff profiles, department memberships, and system role access.</p>
+    </div>
+    <a asp-action="Create" class="bg-[#ef001f] text-white rounded-[8px] px-[17px] py-[9px] font-[600] text-[14px] hover:bg-[#c9001a] transition-colors">Create Employee</a>
+</div>
+
+@if (Model is null || Model.Count == 0)
+{
+    <div class="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-[8px] p-[16px] text-[14px]">No employees have been created yet.</div>
+}
+else
+{
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-[14px] min-w-[36pc]">
+                <thead class="bg-[#f4f4f5]">
+                    <tr>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Name</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Email</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Department</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Role</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Leave Balance</th>
+                        <th class="text-right p-[12px] text-[13px] font-[600] text-[#52525b]">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var employee in Model)
+                    {
+                        <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa] transition-colors">
+                            <td class="p-[12px] font-[600] whitespace-nowrap">@employee.FirstName @employee.LastName</td>
+                            <td class="p-[12px] text-[#687068] whitespace-nowrap">@employee.Email</td>
+                            <td class="p-[12px] whitespace-nowrap">@employee.Department</td>
+                            <td class="p-[12px] whitespace-nowrap">
+                                <span class="bg-[#f4f4f5] text-[#3f3f46] rounded-[6px] px-[8px] py-[3px] text-[12px] font-[600]">@employee.Role</span>
+                            </td>
+                            <td class="p-[12px] whitespace-nowrap">@employee.LeaveBalance days</td>
+                            <td class="p-[12px] text-right whitespace-nowrap">
+                                <a asp-action="Details" asp-route-id="@employee.Id" class="border border-[#71717a] text-[#52525b] rounded-[6px] px-[10px] py-[5px] text-[12px] font-[600] hover:bg-[#f4f4f5] transition-colors">Details</a>
+                                @if (employee.Id != SystemIds.AdminEmployeeId)
+                                {
+                                    <a asp-action="Edit" asp-route-id="@employee.Id" class="ml-[4px] border border-[#ef001f] text-[#ef001f] rounded-[6px] px-[10px] py-[5px] text-[12px] font-[600] hover:bg-[#fff1f3] transition-colors">Edit</a>
+                                    <a asp-action="Delete" asp-route-id="@employee.Id" class="ml-[4px] border border-[#dc2626] text-[#dc2626] rounded-[6px] px-[10px] py-[5px] text-[12px] font-[600] hover:bg-[#fee2e2] transition-colors">Delete</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

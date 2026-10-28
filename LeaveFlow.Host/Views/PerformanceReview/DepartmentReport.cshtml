@@ -1,0 +1,168 @@
+@model DepartmentReviewReportDto
+
+@{
+    ViewData["Title"] = $"{Model.DepartmentName} Review Report";
+    var isManager = User.IsInRole(RoleNames.Manager);
+    var isAdmin = User.IsInRole(RoleNames.Admin);
+    var backAction = isAdmin ? "CycleReports" : "ReviewQueue";
+}
+
+<div class="mb-[1.5pc] flex flex-wrap items-center justify-between gap-[10px]">
+    <div>
+        @if (isAdmin)
+        {
+            <a asp-action="CycleReports" asp-route-cycleId="@Model.CycleId" class="text-[#687068] text-[13px] hover:text-[#18181b]">← Back to Department Reports</a>
+        }
+        else
+        {
+            <a asp-action="ReviewQueue" class="text-[#687068] text-[13px] hover:text-[#18181b]">← Back to Review Queue</a>
+        }
+        <h1 class="text-[28px] font-[700] mt-[4px]">@Model.DepartmentName — Department Review Report</h1>
+        <p class="text-[#687068]">Cycle: <span class="font-[600] text-[#18181b]">@Model.CycleName</span> (@Model.StartDate.ToString("dd MMM yyyy") – @Model.EndDate.ToString("dd MMM yyyy"))</p>
+    </div>
+    <div class="flex items-center gap-[10px]">
+        <span class="@(Model.IsSubmitted ? "bg-[#dcfce7] text-[#15803d]" : "bg-[#fef3c7] text-[#92400e]") rounded-[6px] px-[10px] py-[5px] text-[13px] font-[600]">
+            @(Model.IsSubmitted ? $"Submitted to Admin on {Model.SubmittedAt?.ToString("dd MMM yyyy HH:mm")}" : "Draft / In Progress")
+        </span>
+        @if (isAdmin)
+        {
+            <a asp-action="CycleReports" asp-route-cycleId="@Model.CycleId" class="border border-[#d4d4d8] rounded-[8px] px-[14px] py-[8px] font-[600] text-[#52525b] hover:bg-[#f4f4f5]">Back</a>
+        }
+        else
+        {
+            <a asp-action="ReviewQueue" class="border border-[#d4d4d8] rounded-[8px] px-[14px] py-[8px] font-[600] text-[#52525b] hover:bg-[#f4f4f5]">Back</a>
+        }
+    </div>
+</div>
+
+<!-- Department Level Statistical Summary -->
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-[1pc] mb-[1.5pc]">
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.2pc]">
+        <p class="text-[#687068] text-[11px] font-[600]">DEPARTMENT</p>
+        <p class="text-[16px] font-[700] mt-[4px] truncate">@Model.DepartmentName</p>
+        <p class="text-[12px] text-[#71717a] mt-[2px]">Manager: @Model.ManagerName</p>
+    </div>
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.2pc]">
+        <p class="text-[#687068] text-[11px] font-[600]">REVIEWS COMPLETED</p>
+        <p class="text-[22px] font-[700] mt-[4px]">@Model.ReviewsCompleted / @Model.TotalEmployees</p>
+        <p class="text-[12px] text-[#71717a] mt-[2px]">Employees reviewed</p>
+    </div>
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.2pc]">
+        <p class="text-[#687068] text-[11px] font-[600]">AVG ON-TIME COMPLETION</p>
+        <p class="text-[22px] font-[700] mt-[4px] text-[#15803d]">
+            @(Model.AverageOnTimeCompletionPercentage.HasValue ? $"{Model.AverageOnTimeCompletionPercentage.Value:0.#}%" : "—")
+        </p>
+        <p class="text-[11px] text-[#71717a] mt-[2px]">Average for the department</p>
+    </div>
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.2pc]">
+        <p class="text-[#687068] text-[11px] font-[600]">NON-ANNUAL LEAVES</p>
+        <p class="text-[22px] font-[700] mt-[4px]">@Model.TotalNonAnnualLeaveRequests</p>
+        <p class="text-[12px] text-[#71717a] mt-[2px]">Total requests in scope</p>
+    </div>
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.2pc]">
+        <p class="text-[#687068] text-[11px] font-[600]">LEAVES APPROVED</p>
+        <p class="text-[22px] font-[700] mt-[4px] text-[#15803d]">@Model.TotalNonAnnualLeaveApproved</p>
+        <p class="text-[12px] text-[#71717a] mt-[2px]">Approved non-annual</p>
+    </div>
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.2pc]">
+        <p class="text-[#687068] text-[11px] font-[600]">LEAVES REJECTED</p>
+        <p class="text-[22px] font-[700] mt-[4px] text-[#dc2626]">@Model.TotalNonAnnualLeaveRejected</p>
+        <p class="text-[12px] text-[#71717a] mt-[2px]">Rejected requests</p>
+    </div>
+</div>
+
+<!-- Consolidated Employee Review Summary Table -->
+<div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc] mb-[1.5pc]">
+    <div class="flex items-center justify-between mb-[1pc]">
+        <div>
+            <h2 class="text-[19px] font-[700]">Employee Review Summary</h2>
+            <p class="text-[#687068] text-[13px]">Task completion, non-annual leave counts, and manager comments for each employee.</p>
+        </div>
+        <span class="text-[#687068] text-[13px]">@Model.EmployeeReviews.Count employee(s)</span>
+    </div>
+
+    @if (Model.EmployeeReviews.Count == 0)
+    {
+        <div class="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-[8px] p-[12px]">No employees found in this department for this cycle.</div>
+    }
+    else
+    {
+        <table class="w-full text-[13px]">
+            <thead class="bg-[#f4f4f5]">
+                <tr>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Employee</th>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Tasks Completed</th>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">On-Time</th>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">On-Time %</th>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Non-Annual Leave</th>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Approved</th>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Rejected</th>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Manager Review Comment</th>
+                    <th class="text-right p-[10px] text-[13px] font-[600] text-[#52525b]">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var emp in Model.EmployeeReviews)
+                {
+                    var hasComment = !string.IsNullOrWhiteSpace(emp.ManagerComments);
+                    <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa]">
+                        <td class="p-[10px] font-[600] whitespace-nowrap">@emp.EmployeeName</td>
+                        <td class="p-[10px]">@emp.TaskPerformance.TotalCompletedTasks</td>
+                        <td class="p-[10px] text-[#15803d] font-[600]">@emp.TaskPerformance.CompletedOnTime</td>
+                        <td class="p-[10px] font-[600]">
+                            @(emp.TaskPerformance.OnTimeCompletionPercentage.HasValue ? $"{emp.TaskPerformance.OnTimeCompletionPercentage.Value:0.#}%" : "—")
+                        </td>
+                        <td class="p-[10px]">@emp.LeaveActivity.TotalNonAnnualLeaveRequests</td>
+                        <td class="p-[10px] text-[#15803d]">@emp.LeaveActivity.Approved</td>
+                        <td class="p-[10px] text-[#dc2626]">@emp.LeaveActivity.Rejected</td>
+                        <td class="p-[10px] max-w-[18pc] truncate text-[#3f3f46]">
+                            @(hasComment ? emp.ManagerComments : "— (Pending comment)")
+                        </td>
+                        <td class="p-[10px] text-right whitespace-nowrap">
+                            <a asp-action="Details" asp-route-id="@emp.Id" class="border border-[#71717a] text-[#52525b] rounded-[6px] px-[9px] py-[4px] text-[12px] font-[600] hover:bg-[#f4f4f5]">
+                                @(isManager && !Model.IsSubmitted ? "Edit Comment" : "View Details")
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+<!-- Department Observation & Submission Box -->
+<div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc]">
+    <h2 class="text-[19px] font-[700] mb-[6px]">Department Comment</h2>
+    <p class="text-[#687068] text-[13px] mb-[1pc]">Add an overall comment about the department's performance this cycle.</p>
+
+    @if (isManager && !Model.IsSubmitted)
+    {
+        <form asp-action="SubmitDepartmentReport" asp-route-cycleId="@Model.CycleId" asp-route-departmentId="@Model.DepartmentId" method="post">
+            <div class="mb-[1pc]">
+                <textarea name="DepartmentComment" rows="4" placeholder="e.g. Most employees maintained good task completion rates during the review period. The main area requiring attention is timely completion of tasks for a few team members..." class="w-full border border-[#d4d4d8] rounded-[8px] p-[10px] text-[14px] focus:outline-none focus:border-[#ef001f]">@Model.DepartmentComment</textarea>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-[10px]">
+                <p class="text-[13px] text-[#71717a]">
+                    After you submit, this report and the employee comments will be sent to the Admin.
+                </p>
+                <button type="submit" class="bg-[#ef001f] text-white rounded-[8px] px-[18px] py-[10px] font-[600] text-[14px] hover:bg-[#c9001a] flex items-center gap-[6px]">
+                    Send Report to Admin
+                </button>
+            </div>
+        </form>
+    }
+    else
+    {
+        @if (!string.IsNullOrWhiteSpace(Model.DepartmentComment))
+        {
+            <div class="bg-[#fafafa] border border-[#e4e4e7] rounded-[8px] p-[12px]">
+                <p class="text-[14px] text-[#18181b] leading-[1.6]">@Model.DepartmentComment</p>
+                <p class="text-[12px] text-[#71717a] mt-[8px]">Submitted by @Model.ManagerName on @Model.SubmittedAt?.ToString("dd MMM yyyy HH:mm")</p>
+            </div>
+        }
+        else
+        {
+            <p class="text-[#687068] text-[14px]">No overall department comment was provided with this submission.</p>
+        }
+    }
+</div>

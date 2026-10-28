@@ -1,0 +1,59 @@
+@model UpdateLeaveRequest
+
+@{
+    ViewData["Title"] = "Edit Leave Request";
+    var requestId = ViewContext.RouteData.Values["id"];
+}
+
+<div class="w-[44pc] max-w-full mx-auto">
+    <div class="mb-[1.5pc] flex items-center justify-between">
+        <div>
+            <a asp-action="Details" asp-route-id="@requestId" class="text-[#687068] text-[13px] hover:text-[#18181b]">← Back to Leave Details</a>
+            <h1 class="text-[28px] font-[700] mt-[4px]">Edit Leave Request</h1>
+            <p class="text-[#687068]">Modify details for this pending leave request.</p>
+        </div>
+        <a asp-action="Details" asp-route-id="@requestId" class="border border-[#d4d4d8] rounded-[8px] px-[14px] py-[8px] font-[600] text-[#52525b] hover:bg-[#f4f4f5]">Back</a>
+    </div>
+
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[2pc]">
+        <form asp-action="Edit" asp-route-id="@requestId" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-[#dc2626] text-[13px] mb-[1pc]"></div>
+
+            <div class="mb-[1.2pc]">
+                <label asp-for="LeaveTypeId" class="block font-[600] text-[14px] mb-[4px]">Leave Type</label>
+                <select asp-for="LeaveTypeId" asp-items="ViewBag.LeaveTypes" class="w-full h-[2.8pc] border border-[#d4d4d8] rounded-[8px] px-[12px] text-[14px] bg-white focus:border-[#ef001f] focus:outline-none">
+                    <option value="">-- Select a leave type --</option>
+                </select>
+                <span asp-validation-for="LeaveTypeId" class="text-[#dc2626] text-[12px]"></span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-[1pc] mb-[1.2pc]">
+                <div>
+                    <label asp-for="StartDate" class="block font-[600] text-[14px] mb-[4px]">Start Date</label>
+                    <input asp-for="StartDate" type="date" class="w-full h-[2.8pc] border border-[#d4d4d8] rounded-[8px] px-[12px] text-[14px] focus:border-[#ef001f] focus:outline-none bg-white" />
+                    <span asp-validation-for="StartDate" class="text-[#dc2626] text-[12px]"></span>
+                </div>
+                <div>
+                    <label asp-for="EndDate" class="block font-[600] text-[14px] mb-[4px]">End Date</label>
+                    <input asp-for="EndDate" type="date" class="w-full h-[2.8pc] border border-[#d4d4d8] rounded-[8px] px-[12px] text-[14px] focus:border-[#ef001f] focus:outline-none bg-white" />
+                    <span asp-validation-for="EndDate" class="text-[#dc2626] text-[12px]"></span>
+                </div>
+            </div>
+
+            <div class="mb-[1.5pc]">
+                <label asp-for="Reason" class="block font-[600] text-[14px] mb-[4px]">Reason for Leave</label>
+                <textarea asp-for="Reason" rows="3" class="w-full border border-[#d4d4d8] rounded-[8px] p-[10px] text-[14px] focus:border-[#ef001f] focus:outline-none" maxlength="500"></textarea>
+                <span asp-validation-for="Reason" class="text-[#dc2626] text-[12px]"></span>
+            </div>
+
+            <div class="flex items-center gap-[10px]">
+                <button type="submit" class="bg-[#ef001f] text-white rounded-[8px] px-[18px] py-[10px] font-[600] text-[14px] hover:bg-[#c9001a] transition-colors">Save Changes</button>
+                <a asp-action="Details" asp-route-id="@requestId" class="border border-[#d4d4d8] rounded-[8px] px-[16px] py-[10px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] transition-colors">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

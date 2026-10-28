@@ -1,0 +1,44 @@
+@model LoginRequest
+
+@{
+    ViewData["Title"] = "Sign In";
+    var returnUrl = ViewData["ReturnUrl"] as string;
+}
+
+<div class="w-[30pc] max-w-full mx-auto mt-[2pc] bg-white border border-[#e4e4e7] rounded-[12px] shadow-lg p-[2pc]">
+    <img src="~/images/leaveflow-logo.png" alt="LeaveFlow" class="w-[13pc] h-auto mx-auto mb-[1.5pc]" />
+
+    <h1 class="text-[28px] font-[700] text-center">Sign In</h1>
+    <p class="text-[#687068] text-center mt-[5px]">Enter the details assigned to your employee account.</p>
+
+    <form asp-action="Login" asp-route-returnUrl="@returnUrl" method="post" class="mt-[2pc]">
+        <div asp-validation-summary="ModelOnly" class="text-[#dc2626] text-[13px] mb-[1pc]"></div>
+
+        <div class="mb-[1pc]">
+            <label asp-for="Email" class="font-[600] text-[14px]"></label>
+            <input asp-for="Email" class="w-full h-[2.8pc] border border-[#d4d4d8] rounded-[8px] px-[12px] mt-[5px] focus:border-[#ef001f] focus:outline-none" autocomplete="email" autofocus placeholder="you@company.com" />
+            <span asp-validation-for="Email" class="text-[#dc2626] text-[13px] mt-[4px]"></span>
+        </div>
+
+        <div class="mb-[1pc]">
+            <label asp-for="Password" class="font-[600] text-[14px]"></label>
+            <input asp-for="Password" class="w-full h-[2.8pc] border border-[#d4d4d8] rounded-[8px] px-[12px] mt-[5px] focus:border-[#ef001f] focus:outline-none" type="password" autocomplete="current-password" placeholder="Enter your password" />
+            <span asp-validation-for="Password" class="text-[#dc2626] text-[13px] mt-[4px]"></span>
+        </div>
+
+        <div class="flex items-center mb-[1.5pc]">
+            <input asp-for="RememberMe" class="h-[1pc] w-[1pc]" />
+            <label asp-for="RememberMe" class="ml-[8px] text-[14px] text-[#687068]">Keep me signed in</label>
+        </div>
+
+        <button type="submit" class="w-full bg-[#ef001f] text-white rounded-[8px] p-[10px] font-[600] hover:bg-[#c9001a]">Sign In</button>
+    </form>
+
+    <p class="text-[#687068] text-[13px] text-center mt-[1.5pc]">
+        Your administrator creates your account. Contact them if you cannot sign in.
+    </p>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

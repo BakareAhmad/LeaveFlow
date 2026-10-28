@@ -1,0 +1,69 @@
+@model List<PerformanceReviewDto>
+
+@{
+    ViewData["Title"] = "Department Performance Reviews";
+    var activeCycle = Model.FirstOrDefault()?.CycleId;
+}
+
+<div class="mb-[1.5pc] flex flex-wrap items-center justify-between gap-[10px]">
+    <div>
+        <h1 class="text-[28px] font-[700]">Department Performance Reviews</h1>
+        <p class="text-[#687068] mt-[4px]">Review your employees' metrics, add comments, and submit the department report when you're done.</p>
+    </div>
+    @if (activeCycle.HasValue)
+    {
+        <a asp-action="DepartmentReport" asp-route-cycleId="@activeCycle.Value" class="bg-[#ef001f] text-white rounded-[8px] px-[16px] py-[9px] font-[600] text-[13px] hover:bg-[#c9001a]">
+            Open Department Review Report →
+        </a>
+    }
+</div>
+
+@if (Model is null || Model.Count == 0)
+{
+    <div class="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-[8px] p-[12px]">No active performance reviews are currently pending in your department.</div>
+}
+else
+{
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1pc]">
+        <table class="w-full text-[14px]">
+            <thead class="bg-[#f4f4f5]">
+                <tr>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Employee</th>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Review Cycle</th>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Task On-Time %</th>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Non-Annual Leaves</th>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Status</th>
+                    <th class="text-right p-[10px] text-[13px] font-[600] text-[#52525b]">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model)
+                {
+                    var statusBadge = r.Status switch
+                    {
+                        PerformanceReviewStatus.Submitted => "bg-[#dcfce7] text-[#15803d]",
+                        PerformanceReviewStatus.Completed => "bg-[#dbeafe] text-[#1d4ed8]",
+                        PerformanceReviewStatus.Draft => "bg-[#fef3c7] text-[#92400e]",
+                        _ => "bg-[#f4f4f5] text-[#52525b]"
+                    };
+                    <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa]">
+                        <td class="p-[10px] font-[600]">@r.EmployeeName</td>
+                        <td class="p-[10px] text-[#687068]">@r.CycleName</td>
+                        <td class="p-[10px] font-[600]">
+                            @(r.TaskPerformance.OnTimeCompletionPercentage.HasValue ? $"{r.TaskPerformance.OnTimeCompletionPercentage.Value:0.#}%" : "—")
+                        </td>
+                        <td class="p-[10px] text-[#687068]">
+                            @r.LeaveActivity.TotalNonAnnualLeaveRequests (@r.LeaveActivity.Approved approved, @r.LeaveActivity.Rejected rejected)
+                        </td>
+                        <td class="p-[10px]"><span class="@statusBadge rounded-[6px] px-[8px] py-[4px] text-[12px] font-[600]">@r.Status</span></td>
+                        <td class="p-[10px] text-right whitespace-nowrap">
+                            <a asp-action="Details" asp-route-id="@r.Id" class="bg-[#ef001f] text-white rounded-[6px] px-[12px] py-[5px] text-[12px] font-[600] hover:bg-[#c9001a]">
+                                Review Employee
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

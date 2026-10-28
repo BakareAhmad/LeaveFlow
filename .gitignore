@@ -1,0 +1,21 @@
+# Visual Studio and local user settings
+.vs/
+*.csproj.user
+*.suo
+
+# .NET build output
+**/bin/
+**/obj/
+
+# Front-end dependencies and generated output
+node_modules/
+dist/
+build/
+
+# Local application data
+LeaveFlow.Host/App_Data/ExpenseReceipts/*
+
+# Logs and operating-system files
+*.log
+.DS_Store
+Thumbs.db

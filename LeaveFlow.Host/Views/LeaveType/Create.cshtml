@@ -1,0 +1,50 @@
+@model CreateLeaveTypeRequest
+
+@{
+    ViewData["Title"] = "Create Leave Type";
+}
+
+<div class="w-[44pc] max-w-full mx-auto">
+    <div class="mb-[1.5pc] flex items-center justify-between">
+        <div>
+            <a asp-action="Index" class="text-[#687068] text-[13px] hover:text-[#18181b]">← Back to Leave Types</a>
+            <h1 class="text-[28px] font-[700] mt-[4px]">Create Leave Type</h1>
+            <p class="text-[#687068]">Define a new leave policy category with its entitlement limits.</p>
+        </div>
+        <a asp-action="Index" class="border border-[#d4d4d8] rounded-[8px] px-[14px] py-[8px] font-[600] text-[#52525b] hover:bg-[#f4f4f5]">Back</a>
+    </div>
+
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[2pc]">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-[#dc2626] text-[13px] mb-[1pc]"></div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-[1pc] mb-[1.2pc]">
+                <div>
+                    <label asp-for="Name" class="block font-[600] text-[14px] mb-[4px]">Leave Type Name</label>
+                    <input asp-for="Name" required placeholder="e.g. Maternity Leave" class="w-full h-[2.8pc] border border-[#d4d4d8] rounded-[8px] px-[12px] text-[14px] focus:border-[#ef001f] focus:outline-none" autofocus />
+                    <span asp-validation-for="Name" class="text-[#dc2626] text-[12px]"></span>
+                </div>
+                <div>
+                    <label asp-for="MaximumDays" class="block font-[600] text-[14px] mb-[4px]">Maximum Days Allowed</label>
+                    <input asp-for="MaximumDays" type="number" min="1" max="365" required class="w-full h-[2.8pc] border border-[#d4d4d8] rounded-[8px] px-[12px] text-[14px] focus:border-[#ef001f] focus:outline-none" />
+                    <span asp-validation-for="MaximumDays" class="text-[#dc2626] text-[12px]"></span>
+                </div>
+            </div>
+
+            <div class="mb-[1.5pc]">
+                <label asp-for="Description" class="block font-[600] text-[14px] mb-[4px]">Description / Policy Notes (Optional)</label>
+                <textarea asp-for="Description" rows="3" placeholder="Outline applicable criteria or documentation requirements..." class="w-full border border-[#d4d4d8] rounded-[8px] p-[10px] text-[14px] focus:border-[#ef001f] focus:outline-none" maxlength="500"></textarea>
+                <span asp-validation-for="Description" class="text-[#dc2626] text-[12px]"></span>
+            </div>
+
+            <div class="flex items-center gap-[10px]">
+                <button type="submit" class="bg-[#ef001f] text-white rounded-[8px] px-[18px] py-[10px] font-[600] text-[14px] hover:bg-[#c9001a] transition-colors">Create Leave Type</button>
+                <a asp-action="Index" class="border border-[#d4d4d8] rounded-[8px] px-[16px] py-[10px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] transition-colors">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

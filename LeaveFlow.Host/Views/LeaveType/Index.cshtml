@@ -1,0 +1,49 @@
+@model List<LeaveTypeDto>
+
+@{
+    ViewData["Title"] = "Leave Types";
+}
+
+<div class="flex flex-wrap items-center justify-between gap-[10px] mb-[1.5pc]">
+    <div>
+        <h1 class="text-[28px] font-[700]">Leave Types</h1>
+        <p class="text-[#687068] mt-[4px]">Configure policy leave categories and maximum day limits.</p>
+    </div>
+    <a asp-action="Create" class="bg-[#ef001f] text-white rounded-[8px] px-[17px] py-[9px] font-[600] text-[14px] hover:bg-[#c9001a] transition-colors">Create Leave Type</a>
+</div>
+
+@if (Model is null || Model.Count == 0)
+{
+    <div class="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-[8px] p-[16px] text-[14px]">No leave types have been created yet.</div>
+}
+else
+{
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-[14px] min-w-[34pc]">
+                <thead class="bg-[#f4f4f5]">
+                    <tr>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Leave Type</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Maximum Days</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Description</th>
+                        <th class="text-right p-[12px] text-[13px] font-[600] text-[#52525b]">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var leaveType in Model)
+                    {
+                        <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa] transition-colors">
+                            <td class="p-[12px] font-[600] whitespace-nowrap">@leaveType.Name</td>
+                            <td class="p-[12px] whitespace-nowrap">@leaveType.MaximumDays days</td>
+                            <td class="p-[12px] text-[#687068]">@(string.IsNullOrWhiteSpace(leaveType.Description) ? "—" : leaveType.Description)</td>
+                            <td class="p-[12px] text-right whitespace-nowrap">
+                                <a asp-action="Edit" asp-route-id="@leaveType.Id" class="border border-[#ef001f] text-[#ef001f] rounded-[6px] px-[11px] py-[6px] text-[13px] font-[600] hover:bg-[#fff1f3] transition-colors">Edit</a>
+                                <a asp-action="Delete" asp-route-id="@leaveType.Id" class="ml-[5px] border border-[#dc2626] text-[#dc2626] rounded-[6px] px-[11px] py-[6px] text-[13px] font-[600] hover:bg-[#fee2e2] transition-colors">Delete</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

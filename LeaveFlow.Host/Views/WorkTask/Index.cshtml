@@ -1,0 +1,64 @@
+@model List<WorkTaskDto>
+
+@{
+    ViewData["Title"] = "My Tasks";
+}
+
+<div class="flex flex-wrap items-center justify-between gap-[10px] mb-[1.5pc]">
+    <div>
+        <h1 class="text-[28px] font-[700]">My Tasks</h1>
+        <p class="text-[#687068] mt-[4px]">Track your assigned department tasks, record progress updates, and submit finished work.</p>
+    </div>
+</div>
+
+@if (Model is null || Model.Count == 0)
+{
+    <div class="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-[8px] p-[16px] text-[14px]">No tasks are currently assigned to you.</div>
+}
+else
+{
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-[14px] min-w-[34pc]">
+                <thead class="bg-[#f4f4f5]">
+                    <tr>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Task Title</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Priority</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Status</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Due Date</th>
+                        <th class="text-right p-[12px] text-[13px] font-[600] text-[#52525b]">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var priorityBadge = item.Priority switch
+                        {
+                            TaskPriority.Urgent => "bg-[#fee2e2] text-[#b91c1c]",
+                            TaskPriority.High => "bg-[#ffedd5] text-[#c2410c]",
+                            TaskPriority.Medium => "bg-[#fef3c7] text-[#92400e]",
+                            _ => "bg-[#f4f4f5] text-[#52525b]"
+                        };
+                        var statusBadge = item.Status switch
+                        {
+                            WorkTaskStatus.Accepted => "bg-[#dcfce7] text-[#15803d]",
+                            WorkTaskStatus.Completed => "bg-[#dbeafe] text-[#1d4ed8]",
+                            WorkTaskStatus.InProgress => "bg-[#fef3c7] text-[#92400e]",
+                            WorkTaskStatus.Reopened => "bg-[#fee2e2] text-[#b91c1c]",
+                            _ => "bg-[#f4f4f5] text-[#52525b]"
+                        };
+                        <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa] transition-colors">
+                            <td class="p-[12px] font-[600] whitespace-nowrap">@item.Title</td>
+                            <td class="p-[12px] whitespace-nowrap"><span class="@priorityBadge rounded-[6px] px-[8px] py-[4px] text-[12px] font-[600]">@item.Priority</span></td>
+                            <td class="p-[12px] whitespace-nowrap"><span class="@statusBadge rounded-[6px] px-[8px] py-[4px] text-[12px] font-[600]">@item.Status</span></td>
+                            <td class="p-[12px] text-[#687068] whitespace-nowrap">@item.DueDate.ToString("dd MMM yyyy")</td>
+                            <td class="p-[12px] text-right whitespace-nowrap">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="border border-[#71717a] text-[#52525b] rounded-[6px] px-[10px] py-[5px] text-[12px] font-[600] hover:bg-[#f4f4f5] transition-colors">View</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

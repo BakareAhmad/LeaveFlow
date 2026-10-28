@@ -1,0 +1,45 @@
+@model List<DepartmentDto>
+
+@{
+    ViewData["Title"] = "Departments";
+}
+
+<div class="flex flex-wrap items-center justify-between gap-[10px] mb-[1.5pc]">
+    <div>
+        <h1 class="text-[28px] font-[700]">Departments</h1>
+        <p class="text-[#687068] mt-[4px]">Manage organizational departments and functional divisions.</p>
+    </div>
+    <a asp-action="Create" class="bg-[#ef001f] text-white rounded-[8px] px-[17px] py-[9px] font-[600] text-[14px] hover:bg-[#c9001a] transition-colors">Create Department</a>
+</div>
+
+@if (Model is null || Model.Count == 0)
+{
+    <div class="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-[8px] p-[16px] text-[14px]">No departments have been created yet.</div>
+}
+else
+{
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-[14px]">
+                <thead class="bg-[#f4f4f5]">
+                    <tr>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Department Name</th>
+                        <th class="text-right p-[12px] text-[13px] font-[600] text-[#52525b]">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var department in Model)
+                    {
+                        <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa] transition-colors">
+                            <td class="p-[12px] font-[600]">@department.Name</td>
+                            <td class="p-[12px] text-right whitespace-nowrap">
+                                <a asp-action="Edit" asp-route-id="@department.Id" class="border border-[#ef001f] text-[#ef001f] rounded-[6px] px-[11px] py-[6px] text-[13px] font-[600] hover:bg-[#fff1f3] transition-colors">Edit</a>
+                                <a asp-action="Delete" asp-route-id="@department.Id" class="ml-[5px] border border-[#dc2626] text-[#dc2626] rounded-[6px] px-[11px] py-[6px] text-[13px] font-[600] hover:bg-[#fee2e2] transition-colors">Delete</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

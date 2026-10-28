@@ -1,0 +1,65 @@
+@model List<DepartmentReviewReportDto>
+
+@{
+    ViewData["Title"] = "Department Review Reports";
+    var cycleId = ViewBag.CycleId as Guid?;
+}
+
+<div class="mb-[1.5pc] flex items-center justify-between">
+    <div>
+        <a asp-action="Cycles" class="text-[#687068] text-[13px] hover:text-[#18181b]">← Back to Review Cycles</a>
+        <h1 class="text-[28px] font-[700] mt-[4px]">Department Review Reports</h1>
+        <p class="text-[#687068]">Submitted departmental employee appraisal reports for this cycle.</p>
+    </div>
+    <a asp-action="Cycles" class="border border-[#d4d4d8] rounded-[8px] px-[14px] py-[8px] font-[600] text-[#52525b] hover:bg-[#f4f4f5]">Back</a>
+</div>
+
+@if (Model is null || Model.Count == 0)
+{
+    <div class="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-[8px] p-[12px]">No department reports available for this review cycle.</div>
+}
+else
+{
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1pc]">
+        <table class="w-full text-[14px]">
+            <thead class="bg-[#f4f4f5]">
+                <tr>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Department</th>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Manager</th>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Reviews Completed</th>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Avg On-Time %</th>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Status</th>
+                    <th class="text-right p-[10px] text-[13px] font-[600] text-[#52525b]">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var dept in Model)
+                {
+                    var statusBadge = dept.IsSubmitted
+                        ? "bg-[#dcfce7] text-[#15803d]"
+                        : "bg-[#fef3c7] text-[#92400e]";
+                    <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa]">
+                        <td class="p-[10px] font-[600]">@dept.DepartmentName</td>
+                        <td class="p-[10px]">@dept.ManagerName</td>
+                        <td class="p-[10px] text-[#687068]">
+                            <span class="font-[600] text-[#18181b]">@dept.ReviewsCompleted / @dept.TotalEmployees</span> reviews
+                        </td>
+                        <td class="p-[10px] font-[600]">
+                            @(dept.AverageOnTimeCompletionPercentage.HasValue ? $"{dept.AverageOnTimeCompletionPercentage.Value:0.#}%" : "—")
+                        </td>
+                        <td class="p-[10px]">
+                            <span class="@statusBadge rounded-[6px] px-[8px] py-[4px] text-[12px] font-[600]">
+                                @(dept.IsSubmitted ? "Submitted to Admin" : "Draft / In Progress")
+                            </span>
+                        </td>
+                        <td class="p-[10px] text-right whitespace-nowrap">
+                            <a asp-action="DepartmentReport" asp-route-cycleId="@dept.CycleId" asp-route-departmentId="@dept.DepartmentId" class="bg-[#ef001f] text-white rounded-[6px] px-[12px] py-[5px] text-[12px] font-[600] hover:bg-[#c9001a]">
+                                View Report
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

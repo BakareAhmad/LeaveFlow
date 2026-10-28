@@ -1,0 +1,64 @@
+@model List<LeaveRequestDto>
+
+@{
+    var isSystemAdmin = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+        == SystemIds.AdminUserId.ToString();
+    var pageTitle = isSystemAdmin ? "Manager Leave Requests" : "Department Leave Requests";
+    ViewData["Title"] = pageTitle;
+}
+
+<div class="mb-[1.5pc]">
+    <h1 class="text-[28px] font-[700]">@pageTitle</h1>
+    <p class="text-[#687068] mt-[4px]">Review and approve or reject employee leave applications.</p>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-[8px] p-[16px] text-[14px]">No leave requests are currently awaiting review.</div>
+}
+else
+{
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-[13px] min-w-[38pc]">
+                <thead class="bg-[#f4f4f5]">
+                    <tr>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Employee</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Department</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Leave Type</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Dates</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Days</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Status</th>
+                        <th class="text-right p-[12px] text-[13px] font-[600] text-[#52525b]">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var request in Model)
+                    {
+                        var badgeClass = request.Status switch
+                        {
+                            LeaveStatus.Approved => "bg-[#dcfce7] text-[#15803d]",
+                            LeaveStatus.Rejected => "bg-[#fee2e2] text-[#b91c1c]",
+                            _ => "bg-[#fef3c7] text-[#92400e]"
+                        };
+                        <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa] transition-colors">
+                            <td class="p-[12px] font-[600] whitespace-nowrap">@request.EmployeeName</td>
+                            <td class="p-[12px] text-[#687068] whitespace-nowrap">@request.Department</td>
+                            <td class="p-[12px] whitespace-nowrap">@request.LeaveType</td>
+                            <td class="p-[12px] text-[#687068] whitespace-nowrap">@request.StartDate.ToString("dd MMM") – @request.EndDate.ToString("dd MMM yyyy")</td>
+                            <td class="p-[12px] whitespace-nowrap">@request.NumberOfDays</td>
+                            <td class="p-[12px] whitespace-nowrap"><span class="@badgeClass rounded-[6px] px-[8px] py-[4px] text-[12px] font-[600]">@request.Status</span></td>
+                            <td class="p-[12px] text-right whitespace-nowrap">
+                                <a asp-action="Details" asp-route-id="@request.Id" class="border border-[#71717a] text-[#52525b] rounded-[6px] px-[10px] py-[5px] text-[12px] font-[600] hover:bg-[#f4f4f5] transition-colors">Details</a>
+                                @if (request.Status == LeaveStatus.Pending)
+                                {
+                                    <a asp-action="Review" asp-route-id="@request.Id" class="ml-[4px] bg-[#ef001f] text-white rounded-[6px] px-[11px] py-[6px] text-[12px] font-[600] hover:bg-[#c9001a] transition-colors">Review</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

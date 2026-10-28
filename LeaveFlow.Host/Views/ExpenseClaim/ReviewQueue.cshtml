@@ -1,0 +1,62 @@
+@model List<ExpenseClaimDto>
+
+@{
+    ViewData["Title"] = "Expense Review";
+}
+
+<div class="mb-[1.5pc] flex flex-wrap items-center justify-between gap-[10px]">
+    <div>
+        <h1 class="text-[28px] font-[700]">Expense Review Queue</h1>
+        <p class="text-[#687068] mt-[4px]">Review manager expense reimbursement claims and audit attached receipts.</p>
+    </div>
+    <a asp-action="History" class="bg-white border border-[#d4d4d8] text-[#3f3f46] rounded-[8px] px-[16px] py-[9px] font-[600] text-[13px] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors flex items-center gap-[6px] shadow-sm">
+        <svg class="w-[16px] h-[16px] fill-current text-[#71717a]" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 8.414V5a1 1 0 10-2 0v6a1 1 0 00.293.707l3 3a1 1 0 001.414-1.414L11 10.414z"/></svg>
+        Expense Claim History
+    </a>
+</div>
+
+@if (Model is null || Model.Count == 0)
+{
+    <div class="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-[8px] p-[16px] text-[14px]">No manager expense claims are currently awaiting review.</div>
+}
+else
+{
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-[14px] min-w-[36pc]">
+                <thead class="bg-[#f4f4f5]">
+                    <tr>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Manager</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Claim Title</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Department</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Total Amount</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Status</th>
+                        <th class="text-right p-[12px] text-[13px] font-[600] text-[#52525b]">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var x in Model)
+                    {
+                        var badgeClass = x.Status switch
+                        {
+                            ExpenseClaimStatus.AdminApproved => "bg-[#dcfce7] text-[#15803d]",
+                            ExpenseClaimStatus.AdminRejected => "bg-[#fee2e2] text-[#b91c1c]",
+                            ExpenseClaimStatus.Submitted => "bg-[#fef3c7] text-[#92400e]",
+                            _ => "bg-[#f4f4f5] text-[#52525b]"
+                        };
+                        <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa] transition-colors">
+                            <td class="p-[12px] font-[600] whitespace-nowrap">@x.EmployeeName</td>
+                            <td class="p-[12px] whitespace-nowrap">@x.Title</td>
+                            <td class="p-[12px] text-[#687068] whitespace-nowrap">@x.Department</td>
+                            <td class="p-[12px] font-[600] whitespace-nowrap">@x.TotalAmount.ToString("C")</td>
+                            <td class="p-[12px] whitespace-nowrap"><span class="@badgeClass rounded-[6px] px-[8px] py-[4px] text-[12px] font-[600]">@x.Status</span></td>
+                            <td class="p-[12px] text-right whitespace-nowrap">
+                                <a asp-action="Details" asp-route-id="@x.Id" class="bg-[#ef001f] text-white rounded-[6px] px-[12px] py-[6px] text-[12px] font-[600] hover:bg-[#c9001a] transition-colors">Review</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

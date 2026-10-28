@@ -1,0 +1,18 @@
+@model ErrorViewModel
+
+@{
+    ViewData["Title"] = "Error";
+}
+
+<div class="w-[35pc] max-w-full mx-auto mt-[3pc] bg-white border border-[#fecaca] rounded-[10px] shadow p-[2pc] text-center">
+    <div class="h-[3.5pc] w-[3.5pc] mx-auto rounded-[8px] bg-[#fee2e2] text-[#dc2626] flex items-center justify-center text-[24px] font-[700]">!</div>
+    <h1 class="text-[28px] font-[700] mt-[1pc]">Something Went Wrong</h1>
+    <p class="text-[#687068] mt-[8px]">The application could not complete your request. Please try again.</p>
+
+    @if (Model.ShowRequestId)
+    {
+        <p class="bg-[#f4f4f5] rounded-[8px] p-[10px] text-[12px] text-[#687068] mt-[1pc]">Request ID: @Model.RequestId</p>
+    }
+
+    <a asp-controller="Home" asp-action="Index" class="inline-block mt-[1.5pc] bg-[#ef001f] text-white rounded-[8px] px-[17px] py-[9px] font-[600] hover:bg-[#c9001a]">Return to Dashboard</a>
+</div>

@@ -1,0 +1,77 @@
+@model List<NotificationDto>
+
+@{
+    ViewData["Title"] = "Notifications";
+    var unreadCount = Model.Count(n => !n.IsRead);
+}
+
+<div class="mb-[1.5pc] flex flex-wrap items-center justify-between gap-[10px]">
+    <div>
+        <h1 class="text-[28px] font-[700]">Notifications</h1>
+        <p class="text-[#687068] mt-[4px]">System alerts, approval notifications, and workflow updates.</p>
+    </div>
+    @if (unreadCount > 0)
+    {
+        <form asp-action="MarkAllRead" method="post">
+            <button type="submit" class="border border-[#d4d4d8] bg-white text-[#3f3f46] rounded-[8px] px-[14px] py-[8px] font-[600] text-[13px] hover:bg-[#f4f4f5] transition-colors">
+                Mark all as read (@unreadCount)
+            </button>
+        </form>
+    }
+</div>
+
+@if (Model is null || Model.Count == 0)
+{
+    <div class="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-[8px] p-[16px] text-[14px]">
+        You have no notifications at this time.
+    </div>
+}
+else
+{
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow overflow-hidden divide-y divide-[#e4e4e7]">
+        @foreach (var n in Model)
+        {
+            var typeBadge = n.Type switch
+            {
+                NotificationType.Leave => "bg-[#fff1f3] text-[#ef001f]",
+                NotificationType.Task => "bg-[#eff6ff] text-[#1d4ed8]",
+                NotificationType.Expense => "bg-[#f0fdf4] text-[#15803d]",
+                NotificationType.Performance => "bg-[#fffbeb] text-[#a16207]",
+                NotificationType.Reminder => "bg-[#fef2f2] text-[#b91c1c]",
+                _ => "bg-[#f4f4f5] text-[#52525b]"
+            };
+
+            <div class="p-[14px] flex flex-col sm:flex-row sm:items-center justify-between gap-[10px] @(n.IsRead ? "bg-white" : "bg-[#fffafb]") hover:bg-[#fcfcfc] transition-colors">
+                <div class="flex items-start gap-[12px]">
+                    <span class="@typeBadge px-[8px] py-[3px] rounded-[6px] text-[11px] font-[700] uppercase shrink-0 mt-[2px]">
+                        @n.Type
+                    </span>
+                    <div>
+                        <p class="font-[600] text-[14px] text-[#18181b] @(n.IsRead ? "" : "font-[700]")">@n.Title</p>
+                        <p class="text-[13px] text-[#52525b] mt-[2px] leading-[1.5]">@n.Message</p>
+                        <p class="text-[11px] text-[#a1a1aa] mt-[4px]">@n.CreatedAt.ToString("dd MMM yyyy HH:mm")</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-[8px] self-end sm:self-center shrink-0">
+                    @if (!n.IsRead)
+                    {
+                        <form asp-action="MarkRead" method="post">
+                            <input type="hidden" name="id" value="@n.Id" />
+                            <input type="hidden" name="returnUrl" value="@n.RelatedUrl" />
+                            <button type="submit" class="bg-[#ef001f] text-white rounded-[6px] px-[12px] py-[5px] text-[12px] font-[600] hover:bg-[#c9001a] transition-colors">
+                                @(!string.IsNullOrWhiteSpace(n.RelatedUrl) ? "View" : "Mark Read")
+                            </button>
+                        </form>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(n.RelatedUrl))
+                    {
+                        <a href="@n.RelatedUrl" class="border border-[#d4d4d8] text-[#52525b] rounded-[6px] px-[12px] py-[5px] text-[12px] font-[600] hover:bg-[#f4f4f5] transition-colors">
+                            View
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}

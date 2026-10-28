@@ -1,0 +1,227 @@
+@{
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var isSystemAdmin = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+        == SystemIds.AdminUserId.ToString();
+    var isManager = !isSystemAdmin && User.IsInRole(RoleNames.Manager);
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ef001f" />
+    <meta name="description" content="LeaveFlow - Leave, tasks, expenses and performance reviews for employees." />
+    <title>@ViewData["Title"] - LeaveFlow</title>
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Clean custom scrollbar for sidebar navigation */
+        #sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+        #sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #sidebar::-webkit-scrollbar-thumb {
+            background: #e4e4e7;
+            border-radius: 4px;
+        }
+        #sidebar::-webkit-scrollbar-thumb:hover {
+            background: #a1a1aa;
+        }
+    </style>
+</head>
+<body class="bg-[#f4f4f5] text-[#18181b] antialiased">
+@if (isAuthenticated)
+{
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div id="mobileBackdrop" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
+
+    <div class="min-h-screen flex flex-col md:flex-row">
+        <!-- Sidebar Navigation (Sticky Viewport Height with Independent Scrollbar Slider) -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-[17pc] h-screen bg-white border-r border-[#e4e4e7] p-[1.2pc] flex flex-col overflow-y-auto transform -translate-x-full md:translate-x-0 md:sticky md:top-0 md:h-screen md:shrink-0 md:z-30 transition-transform duration-200 ease-in-out">
+            <div class="flex items-center justify-between mb-[1.5pc] shrink-0">
+                <a asp-controller="Home" asp-action="Index">
+                    <img src="~/images/leaveflow-logo.png" alt="LeaveFlow" class="w-[12pc] h-auto" />
+                </a>
+                <button type="button" onclick="toggleSidebar()" class="md:hidden text-[#71717a] hover:text-[#18181b] p-[6px]">
+                    <svg class="w-[20px] h-[20px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <nav class="flex flex-col gap-[4px] flex-1 pb-[1pc]">
+                <p class="text-[#a1a1aa] text-[11px] font-[700] tracking-[0.5px] uppercase px-[10px] mb-[2px]">Overview</p>
+                <a asp-controller="Home" asp-action="Index" class="p-[9px] px-[12px] rounded-[8px] text-[14px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors">Dashboard</a>
+
+                @if (!isSystemAdmin)
+                {
+                    <p class="text-[#a1a1aa] text-[11px] font-[700] tracking-[0.5px] uppercase px-[10px] mt-[14px] mb-[2px]">My Workspace</p>
+                    <a asp-controller="LeaveRequest" asp-action="Index" class="p-[9px] px-[12px] rounded-[8px] text-[14px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors">Leave</a>
+                    <a asp-controller="WorkTask" asp-action="Index" class="p-[9px] px-[12px] rounded-[8px] text-[14px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors">Tasks</a>
+                    @if (isManager)
+                    {
+                        <a asp-controller="ExpenseClaim" asp-action="Index" class="p-[9px] px-[12px] rounded-[8px] text-[14px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors">Expenses</a>
+                    }
+                    @if (!isManager)
+                    {
+                        <a asp-controller="PerformanceReview" asp-action="MyReviews" class="p-[9px] px-[12px] rounded-[8px] text-[14px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors">Performance</a>
+                    }
+                }
+
+                @if (isManager || isSystemAdmin)
+                {
+                    <p class="text-[#a1a1aa] text-[11px] font-[700] tracking-[0.5px] uppercase px-[10px] mt-[14px] mb-[2px]">Approvals</p>
+                    <a asp-controller="LeaveRequest" asp-action="Manage" class="p-[9px] px-[12px] rounded-[8px] text-[14px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors">Leave</a>
+                    <a asp-controller="WorkTask" asp-action="ReviewQueue" class="p-[9px] px-[12px] rounded-[8px] text-[14px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors">Tasks</a>
+                    @if (isSystemAdmin)
+                    {
+                        <a asp-controller="ExpenseClaim" asp-action="ReviewQueue" class="p-[9px] px-[12px] rounded-[8px] text-[14px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors">Expenses</a>
+                    }
+                    @if (isManager)
+                    {
+                        <a asp-controller="PerformanceReview" asp-action="ReviewQueue" class="p-[9px] px-[12px] rounded-[8px] text-[14px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors">Performance</a>
+                    }
+                    <a asp-controller="Report" asp-action="Index" class="p-[9px] px-[12px] rounded-[8px] text-[14px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors">Reports</a>
+                }
+
+                @if (isSystemAdmin)
+                {
+                    <p class="text-[#a1a1aa] text-[11px] font-[700] tracking-[0.5px] uppercase px-[10px] mt-[14px] mb-[2px]">Administration</p>
+                    <a asp-controller="Employee" asp-action="Index" class="p-[9px] px-[12px] rounded-[8px] text-[14px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors">Employees</a>
+                    <a asp-controller="Department" asp-action="Index" class="p-[9px] px-[12px] rounded-[8px] text-[14px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors">Departments</a>
+                    <a asp-controller="Role" asp-action="Index" class="p-[9px] px-[12px] rounded-[8px] text-[14px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors">Roles</a>
+                    <a asp-controller="LeaveType" asp-action="Index" class="p-[9px] px-[12px] rounded-[8px] text-[14px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors">Leave Types</a>
+                    <a asp-controller="LeaveAccrual" asp-action="Index" class="p-[9px] px-[12px] rounded-[8px] text-[14px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors">Yearly Accrual</a>
+                    <a asp-controller="PerformanceReview" asp-action="Cycles" class="p-[9px] px-[12px] rounded-[8px] text-[14px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors">Review Cycles</a>
+                    <a asp-controller="Audit" asp-action="Index" class="p-[9px] px-[12px] rounded-[8px] text-[14px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors">Audit Log</a>
+                }
+
+                <p class="text-[#a1a1aa] text-[11px] font-[700] tracking-[0.5px] uppercase px-[10px] mt-[14px] mb-[2px]">Account</p>
+                <a asp-controller="Notification" asp-action="Index" class="p-[9px] px-[12px] rounded-[8px] text-[14px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] hover:text-[#18181b] transition-colors flex items-center justify-between">
+                    <span>Notifications</span>
+                    <span id="notification-count" class="bg-[#ef001f] text-white text-[11px] font-[700] px-[7px] py-[2px] rounded-full">0</span>
+                </a>
+            </nav>
+
+            <div class="mt-auto border-t border-[#e4e4e7] pt-[1pc] shrink-0 bg-white">
+                <div class="flex items-center gap-[10px] mb-[10px]">
+                    <div class="h-[2.5pc] w-[2.5pc] shrink-0 rounded-[8px] bg-[#ef001f] text-white flex items-center justify-center font-[700] text-[14px]">
+                        @(string.IsNullOrWhiteSpace(User.Identity?.Name) ? "U" : User.Identity.Name[..1].ToUpper())
+                    </div>
+                    <div class="truncate">
+                        <p class="font-[600] text-[13px] truncate text-[#18181b]">@User.Identity?.Name</p>
+                        <p class="text-[#ef001f] text-[11px] font-[600] truncate">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</p>
+                    </div>
+                </div>
+                <div class="flex gap-[6px]">
+                    <a asp-controller="Auth" asp-action="ChangePassword" class="flex-1 text-center border border-[#d4d4d8] rounded-[7px] py-[6px] text-[12px] font-[600] text-[#52525b] hover:bg-[#f4f4f5]">Password</a>
+                    <form asp-controller="Auth" asp-action="Logout" method="post" class="flex-1">
+                        <button type="submit" class="w-full border border-[#d4d4d8] rounded-[7px] py-[6px] text-[12px] font-[600] text-[#dc2626] hover:bg-[#fee2e2]">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 min-w-0 flex flex-col min-h-screen">
+            <!-- App Header -->
+            <header class="h-[4.5pc] bg-white border-b border-[#e4e4e7] px-[1.5pc] md:px-[2pc] flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-[12px]">
+                    <button type="button" onclick="toggleSidebar()" class="md:hidden p-[8px] -ml-[8px] text-[#52525b] hover:text-[#18181b] rounded-[6px] hover:bg-[#f4f4f5]">
+                        <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    </button>
+                    <div>
+                        <p class="text-[#ef001f] text-[11px] font-[700] tracking-[0.5px] uppercase">Employee Operations</p>
+                        <h1 class="text-[18px] md:text-[20px] font-[700] truncate">@ViewData["Title"]</h1>
+                    </div>
+                </div>
+                <div class="flex items-center gap-[12px]">
+                    <p class="hidden sm:block text-[#687068] text-[13px] font-[500] truncate max-w-[15pc]">@User.Identity?.Name</p>
+                    <a asp-controller="Notification" asp-action="Index" class="relative p-[8px] text-[#52525b] hover:text-[#18181b] hover:bg-[#f4f4f5] rounded-[8px]" title="Notifications">
+                        <svg class="w-[20px] h-[20px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Page Body -->
+            <main class="flex-1 p-[1pc] sm:p-[1.5pc] md:p-[2pc] max-w-full">
+                @if (TempData["Success"] is string successMessage)
+                {
+                    <div class="bg-[#dcfce7] border border-[#86efac] text-[#166534] p-[12px] rounded-[8px] mb-[1.5pc] flex items-center justify-between text-[14px]">
+                        <span>@successMessage</span>
+                        <button type="button" onclick="this.parentElement.remove()" class="text-[#166534] font-[700] hover:opacity-75 px-[8px]">×</button>
+                    </div>
+                }
+                @if (TempData["Error"] is string errorMessage)
+                {
+                    <div class="bg-[#fee2e2] border border-[#fca5a5] text-[#991b1b] p-[12px] rounded-[8px] mb-[1.5pc] flex items-center justify-between text-[14px]">
+                        <span>@errorMessage</span>
+                        <button type="button" onclick="this.parentElement.remove()" class="text-[#991b1b] font-[700] hover:opacity-75 px-[8px]">×</button>
+                    </div>
+                }
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+}
+else
+{
+    <div class="min-h-screen bg-[#f4f4f5] flex flex-col">
+        <header class="h-[4.5pc] bg-white border-b border-[#e4e4e7] px-[5%] flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-[1pc]">
+                <a asp-controller="Home" asp-action="Index">
+                    <img src="~/images/leaveflow-logo.png" alt="LeaveFlow" class="w-[12pc] h-auto" />
+                </a>
+                <span class="hidden md:inline border-l border-[#d4d4d8] pl-[1pc] text-[#687068] text-[13px]">Employee Operations</span>
+            </div>
+            <a asp-controller="Auth" asp-action="Login" class="bg-[#ef001f] text-white rounded-[8px] px-[18px] py-[9px] font-[600] text-[14px] hover:bg-[#c9001a]">Sign In</a>
+        </header>
+        <main class="flex-1 p-[1pc] sm:p-[1.5pc] md:p-[2pc]">
+            @RenderBody()
+        </main>
+        <footer class="bg-white border-t border-[#e4e4e7] p-[1.2pc] text-center text-[#687068] text-[13px]">
+            &copy; @DateTime.Now.Year LeaveFlow
+        </footer>
+    </div>
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('mobileBackdrop');
+        if (sidebar && backdrop) {
+            const isOpen = !sidebar.classList.contains('-translate-x-full');
+            if (isOpen) {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            } else {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            }
+        }
+    }
+</script>
+@if (isAuthenticated)
+{
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@@8.0.7/dist/browser/signalr.min.js"></script>
+    <script>
+        const countElement = document.getElementById("notification-count");
+        fetch("/Notification/UnreadCount").then(r => r.json()).then(d => {
+            if (countElement && d.count !== undefined) countElement.textContent = d.count;
+        }).catch(() => {});
+        const notificationConnection = new signalR.HubConnectionBuilder().withUrl("/hubs/notifications").withAutomaticReconnect().build();
+        notificationConnection.on("ReceiveNotification", notification => {
+            if (countElement) countElement.textContent = Number(countElement.textContent || 0) + 1;
+            const alert = document.createElement("div");
+            alert.className = "bg-[#fff1f3] border border-[#fecdd3] text-[#9f1239] p-[12px] rounded-[8px] mb-[12px] flex items-center justify-between text-[14px]";
+            alert.innerHTML = `<span><strong>${notification.title}</strong>: ${notification.message}</span><button type="button" onclick="this.parentElement.remove()" class="text-[#9f1239] font-[700] px-[6px]">×</button>`;
+            document.querySelector("main")?.prepend(alert);
+        });
+        notificationConnection.start().catch(console.error);
+    </script>
+}
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

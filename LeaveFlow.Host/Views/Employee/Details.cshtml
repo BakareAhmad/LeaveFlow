@@ -1,0 +1,31 @@
+@model EmployeeDto
+
+@{
+    ViewData["Title"] = "Employee Details";
+}
+
+<div class="w-[48pc] max-w-full mx-auto">
+    <div class="mb-[1.5pc] flex items-center justify-between">
+        <div>
+            <a asp-action="Index" class="text-[#687068] text-[13px] hover:text-[#18181b]">← Back to Employees</a>
+            <h1 class="text-[28px] font-[700] mt-[4px]">Employee Details</h1>
+            <p class="text-[#687068]">Profile and departmental assignments.</p>
+        </div>
+        <div class="flex items-center gap-[8px]">
+            @if (Model.Id != SystemIds.AdminEmployeeId)
+            {
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="bg-[#ef001f] text-white rounded-[8px] px-[15px] py-[8px] font-[600] text-[13px] hover:bg-[#c9001a]">Edit</a>
+            }
+            <a asp-action="Index" class="border border-[#d4d4d8] rounded-[8px] px-[15px] py-[8px] font-[600] text-[#52525b] hover:bg-[#f4f4f5]">Back</a>
+        </div>
+    </div>
+
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[2pc]">
+        <div class="flex border-b border-[#e4e4e7] py-[10px]"><p class="font-[600] w-[12pc]">Full Name</p><p>@Model.FirstName @Model.LastName</p></div>
+        <div class="flex border-b border-[#e4e4e7] py-[10px]"><p class="font-[600] w-[12pc]">Email Address</p><p>@Model.Email</p></div>
+        <div class="flex border-b border-[#e4e4e7] py-[10px]"><p class="font-[600] w-[12pc]">Phone Number</p><p>@Model.PhoneNumber</p></div>
+        <div class="flex border-b border-[#e4e4e7] py-[10px]"><p class="font-[600] w-[12pc]">Department</p><p>@Model.Department</p></div>
+        <div class="flex border-b border-[#e4e4e7] py-[10px]"><p class="font-[600] w-[12pc]">System Role</p><p><span class="bg-[#f4f4f5] text-[#3f3f46] rounded-[6px] px-[8px] py-[3px] text-[12px] font-[500]">@Model.Role</span></p></div>
+        <div class="flex py-[10px]"><p class="font-[600] w-[12pc]">Leave Balance</p><p class="font-[600]">@Model.LeaveBalance days</p></div>
+    </div>
+</div>

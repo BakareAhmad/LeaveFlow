@@ -1,0 +1,50 @@
+@model List<RoleDto>
+
+@{
+    ViewData["Title"] = "Roles";
+}
+
+<div class="mb-[1.5pc]">
+    <h1 class="text-[28px] font-[700]">Roles</h1>
+    <p class="text-[#687068] mt-[4px]">Fixed system roles and their administrative permissions.</p>
+</div>
+
+<div class="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-[8px] p-[12px] mb-[1.5pc] text-[13px]">
+    System roles are built-in and cannot be created, renamed, or deleted.
+</div>
+
+@if (Model is null || Model.Count == 0)
+{
+    <div class="bg-[#fee2e2] border border-[#fca5a5] text-[#991b1b] rounded-[8px] p-[16px] text-[14px]">No system roles were found.</div>
+}
+else
+{
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-[14px] min-w-[30pc]">
+                <thead class="bg-[#f4f4f5]">
+                    <tr>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Role</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Access Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var role in Model)
+                    {
+                        var accessLevel = role.Name switch
+                        {
+                            RoleNames.Admin => "Manages the organisation, users, settings, and reviews Manager workflows.",
+                            RoleNames.Manager => "Manages Employee workflows, assignments, and reviews within their Department.",
+                            _ => "Manages personal leave, tasks, expenses, and performance reviews."
+                        };
+
+                        <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa] transition-colors">
+                            <td class="p-[12px] font-[600] whitespace-nowrap">@role.Name</td>
+                            <td class="p-[12px] text-[#687068]">@accessLevel</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

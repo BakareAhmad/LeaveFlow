@@ -1,0 +1,63 @@
+@model List<LeaveRequestDto>
+
+@{
+    ViewData["Title"] = "My Leave Requests";
+}
+
+<div class="flex flex-wrap items-center justify-between gap-[10px] mb-[1.5pc]">
+    <div>
+        <h1 class="text-[28px] font-[700]">My Leave Requests</h1>
+        <p class="text-[#687068] mt-[4px]">Submit and manage your leave applications and time-off schedule.</p>
+    </div>
+    <a asp-action="Apply" class="bg-[#ef001f] text-white rounded-[8px] px-[17px] py-[9px] font-[600] text-[14px] hover:bg-[#c9001a] transition-colors">Apply for Leave</a>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-[8px] p-[16px] text-[14px]">You have not submitted any leave requests yet.</div>
+}
+else
+{
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-[14px] min-w-[36pc]">
+                <thead class="bg-[#f4f4f5]">
+                    <tr>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Leave Type</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Start Date</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">End Date</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Days</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Status</th>
+                        <th class="text-right p-[12px] text-[13px] font-[600] text-[#52525b]">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var request in Model)
+                    {
+                        var badgeClass = request.Status switch
+                        {
+                            LeaveStatus.Approved => "bg-[#dcfce7] text-[#15803d]",
+                            LeaveStatus.Rejected => "bg-[#fee2e2] text-[#b91c1c]",
+                            _ => "bg-[#fef3c7] text-[#92400e]"
+                        };
+                        <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa] transition-colors">
+                            <td class="p-[12px] font-[600] whitespace-nowrap">@request.LeaveType</td>
+                            <td class="p-[12px] text-[#687068] whitespace-nowrap">@request.StartDate.ToString("dd MMM yyyy")</td>
+                            <td class="p-[12px] text-[#687068] whitespace-nowrap">@request.EndDate.ToString("dd MMM yyyy")</td>
+                            <td class="p-[12px] whitespace-nowrap">@request.NumberOfDays days</td>
+                            <td class="p-[12px] whitespace-nowrap"><span class="@badgeClass rounded-[6px] px-[8px] py-[4px] text-[12px] font-[600]">@request.Status</span></td>
+                            <td class="p-[12px] text-right whitespace-nowrap">
+                                <a asp-action="Details" asp-route-id="@request.Id" class="border border-[#71717a] text-[#52525b] rounded-[6px] px-[10px] py-[5px] text-[12px] font-[600] hover:bg-[#f4f4f5] transition-colors">Details</a>
+                                @if (request.Status == LeaveStatus.Pending)
+                                {
+                                    <a asp-action="Edit" asp-route-id="@request.Id" class="ml-[4px] border border-[#ef001f] text-[#ef001f] rounded-[6px] px-[10px] py-[5px] text-[12px] font-[600] hover:bg-[#fff1f3] transition-colors">Edit</a>
+                                    <a asp-action="Cancel" asp-route-id="@request.Id" class="ml-[4px] border border-[#dc2626] text-[#dc2626] rounded-[6px] px-[10px] py-[5px] text-[12px] font-[600] hover:bg-[#fee2e2] transition-colors">Cancel</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

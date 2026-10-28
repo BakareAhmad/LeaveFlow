@@ -1,0 +1,181 @@
+@model OperationsReportDto
+
+@{
+    ViewData["Title"] = "Reports";
+
+    string dateRangeText;
+    if (Model.StartDate.HasValue && Model.EndDate.HasValue)
+    {
+        dateRangeText = $"{Model.StartDate.Value:dd MMM yyyy} - {Model.EndDate.Value:dd MMM yyyy}";
+    }
+    else if (Model.StartDate.HasValue)
+    {
+        dateRangeText = $"From {Model.StartDate.Value:dd MMM yyyy}";
+    }
+    else if (Model.EndDate.HasValue)
+    {
+        dateRangeText = $"Until {Model.EndDate.Value:dd MMM yyyy}";
+    }
+    else
+    {
+        dateRangeText = "All Time";
+    }
+}
+
+<div class="mb-[1.5pc] flex flex-wrap items-center justify-between gap-[10px]">
+    <div>
+        <h1 class="text-[28px] font-[700]">Reports</h1>
+        <p class="text-[#687068] mt-[4px]">See what's happening across leave, tasks, expenses and appraisals.</p>
+    </div>
+    <div class="bg-white border border-[#e4e4e7] rounded-[8px] px-[12px] py-[6px] text-[13px] font-[600] text-[#52525b]">
+        Scope: <span class="text-[#ef001f]">@Model.ScopeName</span>
+    </div>
+</div>
+
+<div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc] mb-[1.5pc]">
+    <form method="get" class="flex flex-wrap gap-[1pc] items-end">
+        <div class="flex-1 min-w-[12pc]">
+            <label class="block text-[13px] font-[600] text-[#52525b] mb-[4px]">Start Date</label>
+            <input name="StartDate" type="date" value="@Model.StartDate?.ToString("yyyy-MM-dd")" class="w-full h-[2.8pc] border border-[#d4d4d8] rounded-[8px] px-[12px] text-[14px] focus:outline-none focus:border-[#ef001f]" />
+        </div>
+        <div class="flex-1 min-w-[12pc]">
+            <label class="block text-[13px] font-[600] text-[#52525b] mb-[4px]">End Date</label>
+            <input name="EndDate" type="date" value="@Model.EndDate?.ToString("yyyy-MM-dd")" class="w-full h-[2.8pc] border border-[#d4d4d8] rounded-[8px] px-[12px] text-[14px] focus:outline-none focus:border-[#ef001f]" />
+        </div>
+        <div class="flex flex-wrap gap-[8px]">
+            <button type="submit" class="h-[2.8pc] bg-[#18181b] text-white rounded-[8px] px-[18px] text-[14px] font-[600] hover:bg-[#27272a]">
+                Apply Filter
+            </button>
+            <button type="submit" formaction="@Url.Action("ExportPdf")" class="h-[2.8pc] bg-[#ef001f] text-white rounded-[8px] px-[16px] text-[14px] font-[600] hover:bg-[#c9001a] flex items-center gap-[6px]">
+                <svg class="w-[16px] h-[16px] fill-current" viewBox="0 0 20 20"><path d="M4 18h12V6l-4-4H4v16zm8-14l2 2h-2V4zM6 10h8v2H6v-2zm0 4h8v2H6v-2z"/></svg>
+                Download PDF
+            </button>
+            <button type="submit" formaction="@Url.Action("ExportCsv")" class="h-[2.8pc] border border-[#d4d4d8] bg-white text-[#3f3f46] rounded-[8px] px-[16px] text-[14px] font-[600] hover:bg-[#f4f4f5] flex items-center gap-[6px]">
+                <svg class="w-[16px] h-[16px] fill-current" viewBox="0 0 20 20"><path d="M4 18h12V6l-4-4H4v16zm8-14l2 2h-2V4zM7 11h2v4H7v-4zm4 0h2v4h-2v-4z"/></svg>
+                Export CSV
+            </button>
+            <a asp-action="Index" class="h-[2.8pc] border border-[#d4d4d8] rounded-[8px] px-[14px] text-[14px] font-[600] text-[#71717a] hover:bg-[#f4f4f5] flex items-center">
+                Reset
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="mb-[1pc] flex items-center justify-between">
+    <h2 class="text-[20px] font-[700]">At a Glance</h2>
+    <span class="text-[13px] text-[#687068]">Date range: @dateRangeText</span>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[1pc] mb-[1.5pc]">
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.3pc]">
+        <p class="text-[#687068] text-[12px] font-[600]">ACTIVE STAFF</p>
+        <p class="text-[28px] font-[700] mt-[4px]">@Model.Employees</p>
+        <p class="text-[#71717a] text-[12px] mt-[4px]">Employees in scope</p>
+    </div>
+
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.3pc]">
+        <p class="text-[#687068] text-[12px] font-[600]">PENDING LEAVE</p>
+        <p class="text-[28px] font-[700] mt-[4px] @(Model.PendingLeave > 0 ? "text-[#c2410c]" : "text-[#15803d]")">@Model.PendingLeave</p>
+        <p class="text-[#71717a] text-[12px] mt-[4px]">Awaiting review</p>
+    </div>
+
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.3pc]">
+        <p class="text-[#687068] text-[12px] font-[600]">OPEN TASKS</p>
+        <p class="text-[28px] font-[700] mt-[4px]">@Model.OpenTasks</p>
+        <p class="text-[#71717a] text-[12px] mt-[4px]">In progress or completed</p>
+    </div>
+
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.3pc]">
+        <p class="text-[#687068] text-[12px] font-[600]">OVERDUE TASKS</p>
+        <p class="text-[28px] font-[700] mt-[4px] @(Model.OverdueTasks > 0 ? "text-[#dc2626]" : "text-[#15803d]")">@Model.OverdueTasks</p>
+        <p class="text-[#71717a] text-[12px] mt-[4px]">Past scheduled due date</p>
+    </div>
+
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.3pc]">
+        <p class="text-[#687068] text-[12px] font-[600]">PENDING EXPENSES</p>
+        <p class="text-[28px] font-[700] mt-[4px] @(Model.PendingExpenses > 0 ? "text-[#c2410c]" : "text-[#15803d]")">@Model.PendingExpenses</p>
+        <p class="text-[#71717a] text-[12px] mt-[4px]">Awaiting Admin approval</p>
+    </div>
+
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.3pc]">
+        <p class="text-[#687068] text-[12px] font-[600]">APPROVED EXPENSES</p>
+        <p class="text-[26px] font-[700] mt-[4px] text-[#15803d]">@Model.ApprovedExpenseTotal.ToString("C")</p>
+        <p class="text-[#71717a] text-[12px] mt-[4px]">Total approved reimbursements</p>
+    </div>
+
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.3pc]">
+        <p class="text-[#687068] text-[12px] font-[600]">OPEN REVIEW CYCLES</p>
+        <p class="text-[28px] font-[700] mt-[4px]">@Model.OpenReviewCycles</p>
+        <p class="text-[#71717a] text-[12px] mt-[4px]">Active appraisal cycles</p>
+    </div>
+
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.3pc]">
+        <p class="text-[#687068] text-[12px] font-[600]">PENDING APPRAISALS</p>
+        <p class="text-[28px] font-[700] mt-[4px] @(Model.PendingPerformanceReviews > 0 ? "text-[#c2410c]" : "text-[#15803d]")">@Model.PendingPerformanceReviews</p>
+        <p class="text-[#71717a] text-[12px] mt-[4px]">Awaiting review or signature</p>
+    </div>
+</div>
+
+<div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc]">
+    <h2 class="text-[19px] font-[700] mb-[1pc]">Details</h2>
+    <table class="w-full text-[14px]">
+        <thead class="bg-[#f4f4f5]">
+            <tr>
+                <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Area</th>
+                <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Metric</th>
+                <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Value</th>
+                <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa]">
+                <td class="p-[10px] font-[600]">Employees</td>
+                <td class="p-[10px]">Active Employees</td>
+                <td class="p-[10px] font-[600]">@Model.Employees</td>
+                <td class="p-[10px] text-[#687068]">Active employees in the selected scope</td>
+            </tr>
+            <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa]">
+                <td class="p-[10px] font-[600]">Leave</td>
+                <td class="p-[10px]">Pending Leave Requests</td>
+                <td class="p-[10px] font-[600] @(Model.PendingLeave > 0 ? "text-[#c2410c]" : "text-[#15803d]")">@Model.PendingLeave</td>
+                <td class="p-[10px] text-[#687068]">Waiting for manager or admin approval</td>
+            </tr>
+            <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa]">
+                <td class="p-[10px] font-[600]">Tasks</td>
+                <td class="p-[10px]">Open Tasks</td>
+                <td class="p-[10px] font-[600]">@Model.OpenTasks</td>
+                <td class="p-[10px] text-[#687068]">Assigned, in progress or waiting for review</td>
+            </tr>
+            <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa]">
+                <td class="p-[10px] font-[600]">Tasks</td>
+                <td class="p-[10px]">Overdue Tasks</td>
+                <td class="p-[10px] font-[600] @(Model.OverdueTasks > 0 ? "text-[#dc2626]" : "text-[#15803d]")">@Model.OverdueTasks</td>
+                <td class="p-[10px] text-[#687068]">Past their due date and not yet accepted</td>
+            </tr>
+            <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa]">
+                <td class="p-[10px] font-[600]">Expenses</td>
+                <td class="p-[10px]">Pending Expense Claims</td>
+                <td class="p-[10px] font-[600] @(Model.PendingExpenses > 0 ? "text-[#c2410c]" : "text-[#15803d]")">@Model.PendingExpenses</td>
+                <td class="p-[10px] text-[#687068]">Manager claims waiting for Admin review</td>
+            </tr>
+            <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa]">
+                <td class="p-[10px] font-[600]">Expenses</td>
+                <td class="p-[10px]">Approved Reimbursements</td>
+                <td class="p-[10px] font-[600] text-[#15803d]">@Model.ApprovedExpenseTotal.ToString("C")</td>
+                <td class="p-[10px] text-[#687068]">Total value of approved claims</td>
+            </tr>
+            <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa]">
+                <td class="p-[10px] font-[600]">Appraisals</td>
+                <td class="p-[10px]">Open Review Cycles</td>
+                <td class="p-[10px] font-[600]">@Model.OpenReviewCycles</td>
+                <td class="p-[10px] text-[#687068]">Review cycles currently open</td>
+            </tr>
+            <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa]">
+                <td class="p-[10px] font-[600]">Appraisals</td>
+                <td class="p-[10px]">Pending Reviews</td>
+                <td class="p-[10px] font-[600] @(Model.PendingPerformanceReviews > 0 ? "text-[#c2410c]" : "text-[#15803d]")">@Model.PendingPerformanceReviews</td>
+                <td class="p-[10px] text-[#687068]">Waiting for manager comment or submission</td>
+            </tr>
+        </tbody>
+    </table>
+</div>

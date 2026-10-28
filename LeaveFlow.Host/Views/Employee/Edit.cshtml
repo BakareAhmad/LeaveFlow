@@ -1,0 +1,75 @@
+@model UpdateEmployeeRequest
+
+@{
+    ViewData["Title"] = "Edit Employee";
+    var employeeId = ViewContext.RouteData.Values["id"];
+}
+
+<div class="w-[48pc] max-w-full mx-auto">
+    <div class="mb-[1.5pc] flex items-center justify-between">
+        <div>
+            <a asp-action="Index" class="text-[#687068] text-[13px] hover:text-[#18181b]">← Back to Employees</a>
+            <h1 class="text-[28px] font-[700] mt-[4px]">Edit Employee</h1>
+            <p class="text-[#687068]">Update staff profile information and system role assignments.</p>
+        </div>
+        <a asp-action="Index" class="border border-[#d4d4d8] rounded-[8px] px-[14px] py-[8px] font-[600] text-[#52525b] hover:bg-[#f4f4f5]">Back</a>
+    </div>
+
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[2pc]">
+        <form asp-action="Edit" asp-route-id="@employeeId" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-[#dc2626] text-[13px] mb-[1pc]"></div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-[1pc] mb-[1.2pc]">
+                <div>
+                    <label asp-for="FirstName" class="block font-[600] text-[14px] mb-[4px]">First Name</label>
+                    <input asp-for="FirstName" class="w-full h-[2.8pc] border border-[#d4d4d8] rounded-[8px] px-[12px] text-[14px] focus:border-[#ef001f] focus:outline-none" autofocus />
+                    <span asp-validation-for="FirstName" class="text-[#dc2626] text-[12px]"></span>
+                </div>
+                <div>
+                    <label asp-for="LastName" class="block font-[600] text-[14px] mb-[4px]">Last Name</label>
+                    <input asp-for="LastName" class="w-full h-[2.8pc] border border-[#d4d4d8] rounded-[8px] px-[12px] text-[14px] focus:border-[#ef001f] focus:outline-none" />
+                    <span asp-validation-for="LastName" class="text-[#dc2626] text-[12px]"></span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-[1pc] mb-[1.2pc]">
+                <div>
+                    <label asp-for="Email" class="block font-[600] text-[14px] mb-[4px]">Email Address</label>
+                    <input asp-for="Email" class="w-full h-[2.8pc] border border-[#d4d4d8] rounded-[8px] px-[12px] text-[14px] focus:border-[#ef001f] focus:outline-none" autocomplete="email" />
+                    <span asp-validation-for="Email" class="text-[#dc2626] text-[12px]"></span>
+                </div>
+                <div>
+                    <label asp-for="PhoneNumber" class="block font-[600] text-[14px] mb-[4px]">Phone Number</label>
+                    <input asp-for="PhoneNumber" class="w-full h-[2.8pc] border border-[#d4d4d8] rounded-[8px] px-[12px] text-[14px] focus:border-[#ef001f] focus:outline-none" />
+                    <span asp-validation-for="PhoneNumber" class="text-[#dc2626] text-[12px]"></span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-[1pc] mb-[1.5pc]">
+                <div>
+                    <label asp-for="DepartmentId" class="block font-[600] text-[14px] mb-[4px]">Department</label>
+                    <select asp-for="DepartmentId" asp-items="ViewBag.Departments" class="w-full h-[2.8pc] border border-[#d4d4d8] rounded-[8px] px-[12px] text-[14px] bg-white focus:border-[#ef001f] focus:outline-none">
+                        <option value="">-- Select a department --</option>
+                    </select>
+                    <span asp-validation-for="DepartmentId" class="text-[#dc2626] text-[12px]"></span>
+                </div>
+                <div>
+                    <label asp-for="RoleId" class="block font-[600] text-[14px] mb-[4px]">System Role</label>
+                    <select asp-for="RoleId" asp-items="ViewBag.Roles" class="w-full h-[2.8pc] border border-[#d4d4d8] rounded-[8px] px-[12px] text-[14px] bg-white focus:border-[#ef001f] focus:outline-none">
+                        <option value="">-- Select a role --</option>
+                    </select>
+                    <span asp-validation-for="RoleId" class="text-[#dc2626] text-[12px]"></span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-[10px]">
+                <button type="submit" class="bg-[#ef001f] text-white rounded-[8px] px-[18px] py-[10px] font-[600] text-[14px] hover:bg-[#c9001a] transition-colors">Save Changes</button>
+                <a asp-action="Index" class="border border-[#d4d4d8] rounded-[8px] px-[16px] py-[10px] font-[600] text-[#52525b] hover:bg-[#f4f4f5] transition-colors">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

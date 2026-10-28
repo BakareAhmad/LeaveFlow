@@ -1,0 +1,50 @@
+@model LeaveRequestDto
+
+@{
+    ViewData["Title"] = "Leave Request Details";
+    var badgeClass = Model.Status switch
+    {
+        LeaveStatus.Approved => "bg-[#dcfce7] text-[#15803d]",
+        LeaveStatus.Rejected => "bg-[#fee2e2] text-[#b91c1c]",
+        _ => "bg-[#fef3c7] text-[#92400e]"
+    };
+    var isOwner = Model.EmployeeId.ToString() == User.FindFirst("EmployeeId")?.Value;
+    var backAction = isOwner ? "Index" : "Manage";
+    var backLabel = isOwner ? "My Leave Requests" : "Leave Management";
+}
+
+<div class="w-[48pc] max-w-full mx-auto">
+    <div class="mb-[1.5pc] flex items-center justify-between">
+        <div>
+            <a asp-action="@backAction" class="text-[#687068] text-[13px] hover:text-[#18181b]">← Back to @backLabel</a>
+            <h1 class="text-[28px] font-[700] mt-[4px]">Leave Request Details</h1>
+            <p class="text-[#687068]">Submitted by @Model.EmployeeName · @Model.Department</p>
+        </div>
+        <div class="flex items-center gap-[8px]">
+            @if (Model.Status == LeaveStatus.Pending && isOwner)
+            {
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="bg-[#ef001f] text-white rounded-[8px] px-[14px] py-[8px] font-[600] text-[13px] hover:bg-[#c9001a]">Edit</a>
+                <a asp-action="Cancel" asp-route-id="@Model.Id" class="bg-[#dc2626] text-white rounded-[8px] px-[14px] py-[8px] font-[600] text-[13px] hover:bg-[#b91c1c]">Cancel</a>
+            }
+            <a asp-action="@backAction" class="border border-[#d4d4d8] rounded-[8px] px-[14px] py-[8px] font-[600] text-[#52525b] hover:bg-[#f4f4f5]">Back</a>
+        </div>
+    </div>
+
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[2pc]">
+        <div class="flex border-b border-[#e4e4e7] py-[10px]"><p class="font-[600] w-[12pc]">Employee</p><p>@Model.EmployeeName</p></div>
+        <div class="flex border-b border-[#e4e4e7] py-[10px]"><p class="font-[600] w-[12pc]">Department</p><p>@Model.Department</p></div>
+        <div class="flex border-b border-[#e4e4e7] py-[10px]"><p class="font-[600] w-[12pc]">Leave Type</p><p>@Model.LeaveType</p></div>
+        <div class="flex border-b border-[#e4e4e7] py-[10px]"><p class="font-[600] w-[12pc]">Dates</p><p>@Model.StartDate.ToString("dd MMM yyyy") - @Model.EndDate.ToString("dd MMM yyyy")</p></div>
+        <div class="flex border-b border-[#e4e4e7] py-[10px]"><p class="font-[600] w-[12pc]">Weekdays</p><p>@Model.NumberOfDays days</p></div>
+        <div class="flex border-b border-[#e4e4e7] py-[10px]"><p class="font-[600] w-[12pc]">Reason</p><p>@Model.Reason</p></div>
+        <div class="flex border-b border-[#e4e4e7] py-[10px]"><p class="font-[600] w-[12pc]">Applied Date</p><p>@Model.AppliedDate.ToString("dd MMM yyyy HH:mm")</p></div>
+        <div class="flex border-b border-[#e4e4e7] py-[10px]"><p class="font-[600] w-[12pc]">Status</p><span class="@badgeClass rounded-[6px] px-[9px] py-[4px] text-[12px] font-[600]">@Model.Status</span></div>
+
+        @if (Model.Status != LeaveStatus.Pending)
+        {
+            <div class="flex border-b border-[#e4e4e7] py-[10px]"><p class="font-[600] w-[12pc]">Reviewed By</p><p>@(string.IsNullOrWhiteSpace(Model.ReviewedBy) ? "System Reviewer" : Model.ReviewedBy)</p></div>
+            <div class="flex border-b border-[#e4e4e7] py-[10px]"><p class="font-[600] w-[12pc]">Reviewed Date</p><p>@Model.ReviewedDate?.ToString("dd MMM yyyy HH:mm")</p></div>
+            <div class="flex py-[10px]"><p class="font-[600] w-[12pc]">Reviewer Comment</p><p>@(string.IsNullOrWhiteSpace(Model.ReviewComment) ? "—" : Model.ReviewComment)</p></div>
+        }
+    </div>
+</div>

@@ -1,0 +1,247 @@
+@model ExpenseClaimDto
+
+@{
+    ViewData["Title"] = "Expense Details";
+    var isOwner = Model.EmployeeId.ToString() == User.FindFirst("EmployeeId")?.Value;
+    var backAction = isOwner ? "Index" : "ReviewQueue";
+    var backLabel = isOwner ? "My Expenses" : "Expense Review Queue";
+
+    var badgeClass = Model.Status switch
+    {
+        ExpenseClaimStatus.AdminApproved => "bg-[#dcfce7] text-[#15803d]",
+        ExpenseClaimStatus.AdminRejected => "bg-[#fee2e2] text-[#b91c1c]",
+        ExpenseClaimStatus.Submitted => "bg-[#fef3c7] text-[#92400e]",
+        _ => "bg-[#f4f4f5] text-[#52525b]"
+    };
+}
+
+<div class="mb-[1.5pc] flex items-center justify-between">
+    <div>
+        <a asp-action="@backAction" class="text-[#687068] text-[13px] hover:text-[#18181b]">← Back to @backLabel</a>
+        <h1 class="text-[28px] font-[700] mt-[4px]">@Model.Title</h1>
+        <p class="text-[#687068]">Submitted by @Model.EmployeeName (@Model.EmployeeRole) · @Model.Department</p>
+    </div>
+    <div class="flex items-center gap-[10px]">
+        <div class="text-right">
+            <p class="text-[22px] font-[700]">@Model.TotalAmount.ToString("C")</p>
+            <span class="@badgeClass rounded-[6px] px-[9px] py-[4px] text-[12px] font-[600] inline-block">@Model.Status</span>
+        </div>
+        <a asp-action="@backAction" class="border border-[#d4d4d8] rounded-[8px] px-[14px] py-[8px] font-[600] text-[#52525b] hover:bg-[#f4f4f5]">Back</a>
+    </div>
+</div>
+
+@if (isOwner && Model.Status == ExpenseClaimStatus.Draft)
+{
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-[1.5pc] mb-[1.5pc]">
+        <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc]">
+            <h3 class="text-[17px] font-[700] mb-[1pc]">Add Expense Item</h3>
+            <form asp-action="AddItem" asp-route-id="@Model.Id" method="post">
+                <div class="mb-[10px]">
+                    <label class="block text-[13px] font-[600] text-[#52525b] mb-[3px]">Description</label>
+                    <input name="Description" required placeholder="e.g. Flight ticket or Client dinner" class="w-full border border-[#d4d4d8] rounded-[8px] p-[8px] text-[14px] focus:outline-none focus:border-[#ef001f]" />
+                </div>
+                <div class="grid grid-cols-2 gap-[10px] mb-[10px]">
+                    <div>
+                        <label class="block text-[13px] font-[600] text-[#52525b] mb-[3px]">Amount</label>
+                        <input name="Amount" type="number" step="0.01" min="0.01" required placeholder="0.00" class="w-full border border-[#d4d4d8] rounded-[8px] p-[8px] text-[14px] focus:outline-none focus:border-[#ef001f]" />
+                    </div>
+                    <div>
+                        <label class="block text-[13px] font-[600] text-[#52525b] mb-[3px]">Expense Date</label>
+                        <input name="ExpenseDate" type="date" required value="@DateTime.UtcNow.ToString("yyyy-MM-dd")" class="w-full border border-[#d4d4d8] rounded-[8px] p-[8px] text-[14px] focus:outline-none focus:border-[#ef001f]" />
+                    </div>
+                </div>
+                <div class="mb-[1pc]">
+                    <label class="block text-[13px] font-[600] text-[#52525b] mb-[3px]">Category</label>
+                    <input name="Category" required placeholder="e.g. Travel, Meals, Logistics, Supplies" class="w-full border border-[#d4d4d8] rounded-[8px] p-[8px] text-[14px] focus:outline-none focus:border-[#ef001f]" />
+                </div>
+                <button type="submit" class="bg-[#ef001f] text-white rounded-[8px] px-[14px] py-[8px] text-[14px] font-[600] hover:bg-[#c9001a]">Add Item</button>
+            </form>
+        </div>
+
+        <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc]">
+            <h3 class="text-[17px] font-[700] mb-[1pc]">Upload Receipt</h3>
+            <p class="text-[#687068] text-[13px] mb-[1pc]">Attach proof of expenditure in PDF, PNG, or JPG format (up to 5 MB).</p>
+            <form asp-action="Upload" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" required accept=".pdf,.png,.jpg,.jpeg,.webp" class="block w-full text-[13px] text-[#52525b] file:mr-[10px] file:py-[6px] file:px-[12px] file:rounded-[6px] file:border-0 file:text-[13px] file:font-[600] file:bg-[#f4f4f5] file:text-[#3f3f46] hover:file:bg-[#e4e4e7]" />
+                <button type="submit" class="mt-[1pc] border border-[#d4d4d8] rounded-[8px] px-[14px] py-[8px] text-[14px] font-[600] text-[#3f3f46] hover:bg-[#f4f4f5]">Upload Receipt</button>
+            </form>
+        </div>
+    </div>
+}
+
+<div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc] mb-[1.5pc]">
+    <h2 class="text-[19px] font-[700] mb-[1pc]">Claim Items</h2>
+    @if (Model.Items.Count == 0)
+    {
+        <p class="text-[#687068] text-[14px]">No items have been added to this claim yet.</p>
+    }
+    else
+    {
+        <table class="w-full text-[14px]">
+            <thead class="bg-[#f4f4f5]">
+                <tr>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Description</th>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Category</th>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Date</th>
+                    <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Amount</th>
+                    @if (isOwner && Model.Status == ExpenseClaimStatus.Draft)
+                    {
+                        <th class="text-right p-[10px] text-[13px] font-[600] text-[#52525b]">Actions</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var i in Model.Items)
+                {
+                    <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa]">
+                        <td class="p-[10px] font-[600]">@i.Description</td>
+                        <td class="p-[10px] text-[#687068]">@i.Category</td>
+                        <td class="p-[10px] text-[#687068]">@i.ExpenseDate.ToString("dd MMM yyyy")</td>
+                        <td class="p-[10px] font-[500]">@i.Amount.ToString("C")</td>
+                        @if (isOwner && Model.Status == ExpenseClaimStatus.Draft)
+                        {
+                            <td class="p-[10px] text-right whitespace-nowrap">
+                                <form asp-action="DeleteItem" asp-route-id="@Model.Id" method="post" class="inline">
+                                    <input type="hidden" name="itemId" value="@i.Id" />
+                                    <button type="submit" class="border border-[#dc2626] text-[#dc2626] rounded-[6px] px-[9px] py-[4px] text-[12px] hover:bg-[#fee2e2]">Remove</button>
+                                </form>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@if (Model.Attachments.Count > 0)
+{
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc] mb-[1.5pc]">
+        <div class="flex items-center justify-between mb-[1pc]">
+            <h2 class="text-[19px] font-[700]">Receipts & Documentation</h2>
+            <span class="text-[#687068] text-[13px]">@Model.Attachments.Count attachment(s)</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-[1.5pc]">
+            @foreach (var a in Model.Attachments)
+            {
+                var isImage = a.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase)
+                    || a.OriginalFileName.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+                    || a.OriginalFileName.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
+                    || a.OriginalFileName.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase)
+                    || a.OriginalFileName.EndsWith(".webp", StringComparison.OrdinalIgnoreCase);
+
+                <div class="border border-[#e4e4e7] rounded-[10px] overflow-hidden bg-[#fafafa] flex flex-col">
+                    @if (isImage)
+                    {
+                        <!-- Image Preview Area -->
+                        <div class="relative bg-[#18181b] flex items-center justify-center p-[8px] min-h-[16pc] max-h-[22pc] overflow-hidden group cursor-pointer"
+                             onclick="openImageModal('@Url.Action("ViewReceipt", new { attachmentId = a.Id })', '@a.OriginalFileName')">
+                            <img src="@Url.Action("ViewReceipt", new { attachmentId = a.Id })" 
+                                 alt="@a.OriginalFileName" 
+                                 class="max-h-[20pc] max-w-full object-contain rounded-[6px] transition-transform duration-200 group-hover:scale-[1.02]" 
+                                 loading="lazy" />
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-[8px] text-white">
+                                <span class="bg-[#18181b]/80 px-[12px] py-[6px] rounded-[6px] text-[12px] font-[600] flex items-center gap-[4px]">
+                                    🔍 Click to Enlarge
+                                </span>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- PDF Document Box -->
+                        <div class="bg-[#f4f4f5] flex flex-col items-center justify-center p-[2pc] min-h-[12pc] border-b border-[#e4e4e7]">
+                            <svg class="w-[48px] h-[48px] text-[#ef001f] mb-[8px]" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M4 18h12V6l-4-4H4v16zm8-14l2 2h-2V4zM6 10h8v2H6v-2zm0 4h8v2H6v-2z"/>
+                            </svg>
+                            <p class="font-[600] text-[14px] text-[#18181b] text-center">PDF Receipt Document</p>
+                            <a href="@Url.Action("ViewReceipt", new { attachmentId = a.Id })" target="_blank" class="mt-[8px] text-[13px] text-[#ef001f] font-[600] hover:underline">
+                                Open PDF in New Tab ↗
+                            </a>
+                        </div>
+                    }
+
+                    <!-- Receipt Info & Action Toolbar -->
+                    <div class="p-[12px] bg-white border-t border-[#e4e4e7] flex items-center justify-between mt-auto">
+                        <div class="truncate mr-[10px]">
+                            <p class="font-[600] text-[13px] text-[#18181b] truncate" title="@a.OriginalFileName">@a.OriginalFileName</p>
+                            <p class="text-[11px] text-[#687068]">@((a.FileSize / 1024.0).ToString("0.0")) KB · @(isImage ? "Image Receipt" : "PDF Document")</p>
+                        </div>
+                        <div class="flex items-center gap-[6px] shrink-0">
+                            <a href="@Url.Action("ViewReceipt", new { attachmentId = a.Id })" target="_blank" class="border border-[#d4d4d8] text-[#3f3f46] rounded-[6px] px-[10px] py-[5px] text-[12px] font-[600] hover:bg-[#f4f4f5]">
+                                View
+                            </a>
+                            <a asp-action="Download" asp-route-attachmentId="@a.Id" class="bg-[#ef001f] text-white rounded-[6px] px-[12px] py-[5px] text-[12px] font-[600] hover:bg-[#c9001a] flex items-center gap-[4px]">
+                                <svg class="w-[12px] h-[12px] fill-current" viewBox="0 0 20 20"><path d="M10 2v10m0 0l-4-4m4 4l4-4M3 14v4h14v-4"/></svg>
+                                Download
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@if (isOwner && Model.Status == ExpenseClaimStatus.Draft)
+{
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc] mb-[1.5pc]">
+        <form asp-action="Submit" asp-route-id="@Model.Id" method="post">
+            <button type="submit" class="bg-[#ef001f] text-white rounded-[8px] px-[18px] py-[10px] font-[600] hover:bg-[#c9001a]">Submit Claim to Administrator</button>
+        </form>
+    </div>
+}
+
+@if (!isOwner && User.IsInRole(RoleNames.Admin) && Model.Status == ExpenseClaimStatus.Submitted)
+{
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc] mb-[1.5pc]">
+        <h3 class="text-[18px] font-[700] mb-[10px]">Review Expense Claim</h3>
+        <p class="text-[#687068] text-[13px] mb-[1pc]">Audit the items and attached receipts, then provide your approval decision.</p>
+        <form asp-action="Review" asp-route-id="@Model.Id" method="post">
+            <textarea name="Comment" class="w-full border border-[#d4d4d8] rounded-[8px] p-[10px] text-[14px] focus:outline-none focus:border-[#ef001f]" rows="3" placeholder="Add review notes or justification..."></textarea>
+            <div class="flex gap-[10px] mt-[10px]">
+                <button type="submit" name="Approve" value="true" class="bg-[#15803d] text-white rounded-[8px] px-[16px] py-[9px] font-[600] hover:bg-[#166534]">Approve Claim</button>
+                <button type="submit" name="Approve" value="false" class="bg-[#b91c1c] text-white rounded-[8px] px-[16px] py-[9px] font-[600] hover:bg-[#991b1b]">Reject Claim</button>
+            </div>
+        </form>
+    </div>
+}
+
+@if (Model.Status == ExpenseClaimStatus.AdminApproved || Model.Status == ExpenseClaimStatus.AdminRejected)
+{
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc]">
+        <h3 class="text-[17px] font-[700] mb-[8px]">Administrator Review Record</h3>
+        <p class="text-[14px] text-[#3f3f46]">Decision: <span class="@badgeClass rounded-[6px] px-[8px] py-[3px] text-[12px] font-[600]">@Model.Status</span></p>
+        @if (!string.IsNullOrWhiteSpace(Model.AdminComment))
+        {
+            <p class="text-[14px] text-[#687068] mt-[6px]">Reviewer Notes: @Model.AdminComment</p>
+        }
+    </div>
+}
+
+<!-- Modal Lightbox for Full Receipt Image Preview -->
+<div id="imageModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-[2pc]" onclick="closeImageModal()">
+    <div class="relative max-w-[90vw] max-h-[90vh] flex flex-col items-center" onclick="event.stopPropagation()">
+        <div class="w-full flex items-center justify-between text-white pb-[10px]">
+            <span id="modalImageTitle" class="text-[14px] font-[600] truncate"></span>
+            <button onclick="closeImageModal()" class="text-white hover:text-[#ef001f] text-[24px] font-[700] px-[8px]">×</button>
+        </div>
+        <img id="modalImage" src="" alt="Receipt Full Preview" class="max-w-[85vw] max-h-[80vh] object-contain rounded-[8px] border border-[#3f3f46] shadow-2xl bg-[#18181b]" />
+    </div>
+</div>
+
+<script>
+    function openImageModal(url, title) {
+        document.getElementById('modalImage').src = url;
+        document.getElementById('modalImageTitle').textContent = title;
+        document.getElementById('imageModal').classList.remove('hidden');
+    }
+    function closeImageModal() {
+        document.getElementById('imageModal').classList.add('hidden');
+        document.getElementById('modalImage').src = '';
+    }
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeImageModal();
+    });
+</script>

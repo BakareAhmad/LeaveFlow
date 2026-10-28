@@ -1,0 +1,51 @@
+@model CreateExpenseClaimRequest
+
+@{
+    ViewData["Title"] = "New Expense Claim";
+}
+
+<div class="w-[44pc] max-w-full mx-auto">
+    <div class="mb-[1.5pc] flex items-center justify-between">
+        <div>
+            <a asp-action="Index" class="text-[#687068] text-[13px] hover:text-[#18181b]">← Back to Expenses</a>
+            <h1 class="text-[28px] font-[700] mt-[4px]">New Expense Claim</h1>
+            <p class="text-[#687068]">Create a draft reimbursement claim for administrator review.</p>
+        </div>
+        <a asp-action="Index" class="border border-[#d4d4d8] rounded-[8px] px-[14px] py-[8px] font-[600] text-[#52525b] hover:bg-[#f4f4f5]">Back</a>
+    </div>
+
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[2pc]">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-[#dc2626] text-[13px] mb-[1pc]"></div>
+
+            <div class="mb-[1.2pc]">
+                <label asp-for="Title" class="block font-[600] text-[14px] mb-[4px]">Claim Title</label>
+                <input asp-for="Title" required placeholder="e.g. Department Offsite Travel & Meals" class="w-full h-[2.8pc] border border-[#d4d4d8] rounded-[8px] px-[12px] text-[14px] focus:border-[#ef001f] focus:outline-none" />
+                <span asp-validation-for="Title" class="text-[#dc2626] text-[12px]"></span>
+            </div>
+
+            <div class="mb-[1.2pc]">
+                <label asp-for="Description" class="block font-[600] text-[14px] mb-[4px]">Business Justification / Notes (Optional)</label>
+                <textarea asp-for="Description" rows="3" placeholder="Provide background details or purpose for the expenditures..." class="w-full border border-[#d4d4d8] rounded-[8px] p-[10px] text-[14px] focus:border-[#ef001f] focus:outline-none"></textarea>
+                <span asp-validation-for="Description" class="text-[#dc2626] text-[12px]"></span>
+            </div>
+
+            <div class="mb-[1.5pc]">
+                <label asp-for="WorkTaskId" class="block font-[600] text-[14px] mb-[4px]">Related Department Task (Optional)</label>
+                <select asp-for="WorkTaskId" asp-items="ViewBag.Tasks" class="w-full h-[2.8pc] border border-[#d4d4d8] rounded-[8px] px-[12px] text-[14px] focus:border-[#ef001f] focus:outline-none bg-white">
+                    <option value="">-- No Related Task --</option>
+                </select>
+                <span asp-validation-for="WorkTaskId" class="text-[#dc2626] text-[12px]"></span>
+            </div>
+
+            <div class="flex items-center gap-[10px]">
+                <button type="submit" class="bg-[#ef001f] text-white rounded-[8px] px-[18px] py-[10px] font-[600] hover:bg-[#c9001a]">Create Draft Claim</button>
+                <a asp-action="Index" class="border border-[#d4d4d8] rounded-[8px] px-[16px] py-[10px] font-[600] text-[#52525b] hover:bg-[#f4f4f5]">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

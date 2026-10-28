@@ -1,0 +1,86 @@
+@model List<PerformanceReviewCycleDto>
+
+@{
+    ViewData["Title"] = "Review Cycles";
+}
+
+<div class="flex flex-col lg:flex-row gap-[1.5pc]">
+    <div class="w-full lg:w-[24pc]">
+        <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc]">
+            <h2 class="text-[20px] font-[700] mb-[1pc]">Create Review Cycle</h2>
+            <form asp-action="CreateCycle" method="post">
+                <div class="mb-[12px]">
+                    <label class="block text-[13px] font-[600] text-[#52525b] mb-[3px]">Cycle Name</label>
+                    <input name="Name" required placeholder="e.g. Q3 2026 Appraisal" class="w-full border border-[#d4d4d8] rounded-[8px] p-[8px] text-[14px] focus:outline-none focus:border-[#ef001f]" />
+                </div>
+                <div class="mb-[12px]">
+                    <label class="block text-[13px] font-[600] text-[#52525b] mb-[3px]">Start Date</label>
+                    <input name="StartDate" type="date" required value="@DateTime.UtcNow.ToString("yyyy-MM-dd")" class="w-full border border-[#d4d4d8] rounded-[8px] p-[8px] text-[14px] focus:outline-none focus:border-[#ef001f]" />
+                </div>
+                <div class="mb-[1.5pc]">
+                    <label class="block text-[13px] font-[600] text-[#52525b] mb-[3px]">End Date</label>
+                    <input name="EndDate" type="date" required value="@DateTime.UtcNow.AddMonths(1).ToString("yyyy-MM-dd")" class="w-full border border-[#d4d4d8] rounded-[8px] p-[8px] text-[14px] focus:outline-none focus:border-[#ef001f]" />
+                </div>
+                <button type="submit" class="bg-[#ef001f] text-white rounded-[8px] px-[16px] py-[9px] font-[600] hover:bg-[#c9001a]">Create Cycle</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="flex-1">
+        <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc]">
+            <h1 class="text-[24px] font-[700] mb-[1pc]">Review Cycles</h1>
+            @if (Model is null || Model.Count == 0)
+            {
+                <div class="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-[8px] p-[12px]">No performance review cycles have been created yet.</div>
+            }
+            else
+            {
+                <table class="w-full text-[14px]">
+                    <thead class="bg-[#f4f4f5]">
+                        <tr>
+                            <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Cycle Name</th>
+                            <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Period</th>
+                            <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Department Reports</th>
+                            <th class="text-left p-[10px] text-[13px] font-[600] text-[#52525b]">Status</th>
+                            <th class="text-right p-[10px] text-[13px] font-[600] text-[#52525b]">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var c in Model)
+                        {
+                            var statusBadge = c.IsOpen
+                                ? "bg-[#dcfce7] text-[#15803d]"
+                                : "bg-[#f4f4f5] text-[#52525b]";
+                            <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa]">
+                                <td class="p-[10px] font-[600]">@c.Name</td>
+                                <td class="p-[10px] text-[#687068]">@c.StartDate.ToString("dd MMM") - @c.EndDate.ToString("dd MMM yyyy")</td>
+                                <td class="p-[10px] text-[#687068]">
+                                    <span class="font-[600] text-[#18181b]">@c.SubmittedDepartmentReports / @c.TotalDepartments</span> submitted
+                                    <span class="text-[12px] block text-[#71717a]">(@c.CompletedReviews / @c.TotalReviews employee reviews)</span>
+                                </td>
+                                <td class="p-[10px]"><span class="@statusBadge rounded-[6px] px-[8px] py-[4px] text-[12px] font-[600]">@(c.IsOpen ? "Open" : "Closed")</span></td>
+                                <td class="p-[10px] text-right whitespace-nowrap">
+                                    <a asp-action="CycleReports" asp-route-cycleId="@c.Id" class="border border-[#71717a] text-[#52525b] rounded-[6px] px-[10px] py-[4px] text-[12px] font-[600] hover:bg-[#f4f4f5] mr-[4px]">
+                                        Department Reports
+                                    </a>
+                                    @if (!c.IsOpen)
+                                    {
+                                        <form asp-action="OpenCycle" asp-route-id="@c.Id" method="post" class="inline">
+                                            <button type="submit" class="border border-[#15803d] text-[#15803d] rounded-[6px] px-[10px] py-[4px] text-[12px] font-[600] hover:bg-[#f0fdf4]">Open Cycle</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="CloseCycle" asp-route-id="@c.Id" method="post" class="inline">
+                                            <button type="submit" class="border border-[#dc2626] text-[#dc2626] rounded-[6px] px-[10px] py-[4px] text-[12px] font-[600] hover:bg-[#fee2e2]">Close Cycle</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>

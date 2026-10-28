@@ -1,0 +1,177 @@
+@model WorkTaskDto
+
+@{
+    ViewData["Title"] = "Task Details";
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    var currentEmployeeId = User.FindFirst("EmployeeId")?.Value;
+    var isSystemAdmin = currentUserId == SystemIds.AdminUserId.ToString();
+    var isManager = User.IsInRole(RoleNames.Manager);
+
+    var isAssignee = string.Equals(Model.AssignedEmployeeId.ToString(), currentEmployeeId, StringComparison.OrdinalIgnoreCase);
+
+    // Self-review restriction: An assignee can NEVER review their own task.
+    // Manager tasks are reviewed exclusively by System Admin.
+    // Employee tasks are reviewed by their Department Manager or System Admin.
+    var canReview = !isAssignee && (
+        (isSystemAdmin && Model.AssignedEmployeeRole == RoleNames.Manager) ||
+        (isManager && Model.AssignedEmployeeRole == RoleNames.Employee && string.Equals(User.FindFirst("DepartmentId")?.Value, Model.DepartmentId.ToString(), StringComparison.OrdinalIgnoreCase)) ||
+        (isSystemAdmin && Model.AssignedEmployeeRole == RoleNames.Employee)
+    );
+
+    var backAction = isAssignee ? "Index" : "ReviewQueue";
+    var backLabel = isAssignee ? "My Tasks" : "Task Review Queue";
+
+    var priorityBadge = Model.Priority switch
+    {
+        TaskPriority.Urgent => "bg-[#fee2e2] text-[#b91c1c]",
+        TaskPriority.High => "bg-[#ffedd5] text-[#c2410c]",
+        TaskPriority.Medium => "bg-[#fef3c7] text-[#92400e]",
+        _ => "bg-[#f4f4f5] text-[#52525b]"
+    };
+    var statusBadge = Model.Status switch
+    {
+        WorkTaskStatus.Accepted => "bg-[#dcfce7] text-[#15803d]",
+        WorkTaskStatus.Completed => "bg-[#dbeafe] text-[#1d4ed8]",
+        WorkTaskStatus.InProgress => "bg-[#fef3c7] text-[#92400e]",
+        WorkTaskStatus.Reopened => "bg-[#fee2e2] text-[#b91c1c]",
+        _ => "bg-[#f4f4f5] text-[#52525b]"
+    };
+}
+
+<div class="mb-[1.5pc] flex items-center justify-between">
+    <div>
+        <a asp-action="@backAction" class="text-[#687068] text-[13px] hover:text-[#18181b]">← Back to @backLabel</a>
+        <h1 class="text-[28px] font-[700] mt-[4px]">@Model.Title</h1>
+        <p class="text-[#687068]">Assigned to @Model.AssignedEmployee (@(string.IsNullOrWhiteSpace(Model.AssignedEmployeeRole) ? "Staff" : Model.AssignedEmployeeRole)) · @Model.Department</p>
+    </div>
+    <div class="flex items-center gap-[10px]">
+        <span class="@statusBadge rounded-[6px] px-[10px] py-[5px] text-[13px] font-[600]">@Model.Status</span>
+        <a asp-action="@backAction" class="border border-[#d4d4d8] rounded-[8px] px-[14px] py-[8px] font-[600] text-[#52525b] hover:bg-[#f4f4f5]">Back</a>
+    </div>
+</div>
+
+<div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc] mb-[1.5pc]">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-[1pc] pb-[1.5pc] border-b border-[#e4e4e7]">
+        <div>
+            <p class="text-[13px] text-[#687068] font-[600]">Priority</p>
+            <span class="@priorityBadge rounded-[6px] px-[8px] py-[3px] text-[12px] font-[600] inline-block mt-[4px]">@Model.Priority</span>
+        </div>
+        <div>
+            <p class="text-[13px] text-[#687068] font-[600]">Due Date</p>
+            <p class="text-[14px] font-[600] mt-[4px]">@Model.DueDate.ToString("dd MMM yyyy")</p>
+        </div>
+        <div>
+            <p class="text-[13px] text-[#687068] font-[600]">Assigned By</p>
+            <p class="text-[14px] font-[600] mt-[4px]">@Model.AssignedBy</p>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Description))
+    {
+        <div class="mt-[1.5pc]">
+            <h3 class="text-[14px] font-[600] text-[#52525b] mb-[4px]">Description</h3>
+            <p class="text-[14px] text-[#18181b] leading-[1.6]">@Model.Description</p>
+        </div>
+    }
+
+    @if (isAssignee && (Model.Status == WorkTaskStatus.Assigned || Model.Status == WorkTaskStatus.Reopened))
+    {
+        <div class="mt-[1.5pc] pt-[1.5pc] border-t border-[#e4e4e7]">
+            <form asp-action="Start" asp-route-id="@Model.Id" method="post">
+                <button type="submit" class="bg-[#ef001f] text-white rounded-[8px] px-[16px] py-[9px] font-[600] hover:bg-[#c9001a]">Start Task</button>
+            </form>
+        </div>
+    }
+
+    @if (isAssignee && (Model.Status == WorkTaskStatus.InProgress || Model.Status == WorkTaskStatus.Reopened))
+    {
+        <div class="mt-[1.5pc] pt-[1.5pc] border-t border-[#e4e4e7] flex items-center justify-between">
+            <p class="text-[14px] text-[#687068]">Finished working on this task? Submit it for review.</p>
+            <form asp-action="Complete" asp-route-id="@Model.Id" method="post">
+                <button type="submit" class="bg-[#18181b] text-white rounded-[8px] px-[16px] py-[9px] font-[600] hover:bg-[#27272a]">Mark Completed</button>
+            </form>
+        </div>
+    }
+
+    @if (isAssignee && Model.Status == WorkTaskStatus.Completed)
+    {
+        <div class="mt-[1.5pc] pt-[1.5pc] border-t border-[#e4e4e7]">
+            <div class="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-[8px] p-[12px] text-[13px] font-[500]">
+                You have submitted this task as completed. It is currently awaiting review by your @(Model.AssignedEmployeeRole == RoleNames.Manager ? "System Administrator" : "Department Manager").
+            </div>
+        </div>
+    }
+</div>
+
+@if (canReview && Model.Status == WorkTaskStatus.Completed)
+{
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc] mb-[1.5pc]">
+        <h3 class="text-[18px] font-[700] mb-[10px]">Review Completed Task</h3>
+        <p class="text-[#687068] text-[13px] mb-[1pc]">Review the deliverables for this task and choose whether to accept the work or reopen it for changes.</p>
+        <form asp-action="Review" asp-route-id="@Model.Id" method="post">
+            <textarea name="Comment" class="w-full border border-[#d4d4d8] rounded-[8px] p-[10px] text-[14px] focus:outline-none focus:border-[#ef001f]" rows="3" placeholder="Add review feedback or notes..."></textarea>
+            <div class="flex gap-[10px] mt-[10px]">
+                <button type="submit" name="Accept" value="true" class="bg-[#15803d] text-white rounded-[8px] px-[16px] py-[9px] font-[600] hover:bg-[#166534]">Accept Task</button>
+                <button type="submit" name="Accept" value="false" class="bg-[#b91c1c] text-white rounded-[8px] px-[16px] py-[9px] font-[600] hover:bg-[#991b1b]">Reopen Task</button>
+            </div>
+        </form>
+    </div>
+}
+
+@if (Model.ReviewedAt.HasValue)
+{
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc] mb-[1.5pc]">
+        <h3 class="text-[17px] font-[700] mb-[6px]">Reviewer Decision</h3>
+        <p class="text-[14px] text-[#3f3f46]">
+            Status: <span class="@statusBadge rounded-[6px] px-[8px] py-[3px] text-[12px] font-[600]">@Model.Status</span>
+            <span class="text-[#687068] text-[12px] ml-[8px]">Reviewed on @Model.ReviewedAt.Value.ToString("dd MMM yyyy HH:mm")</span>
+        </p>
+        @if (!string.IsNullOrWhiteSpace(Model.ReviewComment))
+        {
+            <p class="text-[14px] text-[#52525b] mt-[6px] bg-[#f4f4f5] p-[10px] rounded-[6px]">@Model.ReviewComment</p>
+        }
+    </div>
+}
+
+<div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc]">
+    <div class="flex items-center justify-between mb-[1pc]">
+        <h2 class="text-[19px] font-[700]">Progress Updates</h2>
+    </div>
+
+    @if (isAssignee)
+    {
+        @if (Model.Status == WorkTaskStatus.InProgress || Model.Status == WorkTaskStatus.Reopened)
+        {
+            <form asp-action="AddProgress" asp-route-id="@Model.Id" method="post" class="mb-[1.5pc] pb-[1.5pc] border-b border-[#e4e4e7]">
+                <textarea name="Comment" required class="w-full border border-[#d4d4d8] rounded-[8px] p-[10px] text-[14px] focus:outline-none focus:border-[#ef001f]" rows="2" placeholder="Record progress or status update..."></textarea>
+                <button type="submit" class="mt-[8px] border border-[#d4d4d8] rounded-[8px] px-[14px] py-[7px] text-[13px] font-[600] text-[#3f3f46] hover:bg-[#f4f4f5]">Add Update</button>
+            </form>
+        }
+        else if (Model.Status == WorkTaskStatus.Assigned)
+        {
+            <div class="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-[8px] p-[12px] text-[13px] mb-[1.5pc]">
+                Please click <strong>"Start Task"</strong> above to begin working on this task before recording progress updates.
+            </div>
+        }
+    }
+
+    @if (Model.ProgressUpdates.Count == 0)
+    {
+        <p class="text-[#687068] text-[14px]">No progress updates recorded yet.</p>
+    }
+    else
+    {
+        <div class="flex flex-col gap-[10px]">
+            @foreach (var u in Model.ProgressUpdates)
+            {
+                <div class="border-b border-[#e4e4e7] pb-[10px]">
+                    <div class="flex items-center justify-between mb-[3px]">
+                        <span class="font-[600] text-[14px]">@u.EmployeeName</span>
+                        <span class="text-[#687068] text-[12px]">@u.CreatedAt.ToString("dd MMM yyyy HH:mm")</span>
+                    </div>
+                    <p class="text-[14px] text-[#3f3f46] leading-[1.5]">@u.Comment</p>
+                </div>
+            }
+        </div>
+    }
+</div>

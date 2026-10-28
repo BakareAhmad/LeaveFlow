@@ -1,0 +1,83 @@
+@model LeaveAccrualViewModel
+
+@{
+    ViewData["Title"] = "Yearly Leave Accrual";
+}
+
+<div class="mb-[1.5pc]">
+    <h1 class="text-[28px] font-[700]">Yearly Leave Accrual</h1>
+    <p class="text-[#687068] mt-[4px]">Configure future annual leave entitlements and execute the current year's batch accrual.</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-[1.5pc] mb-[1.5pc]">
+    <!-- Current Year Accrual Card -->
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc]">
+        <h2 class="text-[20px] font-[700]">@Model.Overview.CurrentYear Annual Accrual</h2>
+        <p class="text-[#687068] text-[13px] mt-[2px]">Status of employee leave credits for the current operational year.</p>
+
+        @if (Model.Overview.CurrentYearSetting is null)
+        {
+            <div class="bg-[#fee2e2] border border-[#fca5a5] text-[#991b1b] rounded-[8px] p-[12px] mt-[1.5pc] text-[14px]">
+                No accrual amount has been configured for @Model.Overview.CurrentYear.
+            </div>
+        }
+        else
+        {
+            <div class="mt-[1.5pc] border-b border-[#e4e4e7] pb-[1pc]">
+                <p class="text-[#687068] text-[12px] font-[600] uppercase">Annual Credit Amount</p>
+                <p class="text-[32px] font-[700] text-[#18181b] mt-[2px]">@Model.Overview.CurrentYearSetting.AccrualAmount <span class="text-[18px] font-[500] text-[#71717a]">days</span></p>
+            </div>
+
+            <div class="mt-[1pc]">
+                <p class="text-[#687068] text-[12px] font-[600] uppercase mb-[4px]">Processing Status</p>
+                @if (Model.Overview.CurrentYearSetting.IsProcessed)
+                {
+                    <span class="inline-block bg-[#dcfce7] text-[#15803d] rounded-[6px] px-[10px] py-[4px] font-[600] text-[13px]">Processed</span>
+                    <p class="text-[#687068] text-[13px] mt-[6px]">Credited on @Model.Overview.CurrentYearSetting.ProcessedAt?.ToString("dd MMM yyyy HH:mm")</p>
+                }
+                else
+                {
+                    <span class="inline-block bg-[#fef3c7] text-[#92400e] rounded-[6px] px-[10px] py-[4px] font-[600] text-[13px]">Not Processed</span>
+                    <form asp-action="ProcessCurrentYear" method="post" class="mt-[1.2pc]">
+                        <button type="submit" class="bg-[#ef001f] text-white rounded-[8px] px-[18px] py-[10px] font-[600] text-[14px] hover:bg-[#c9001a] transition-colors">
+                            Apply @Model.Overview.CurrentYearSetting.AccrualAmount Days to All Employees
+                        </button>
+                    </form>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Next Year Configuration Card -->
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc]">
+        <h2 class="text-[20px] font-[700]">Configure @Model.Overview.NextYear Entitlement</h2>
+        <p class="text-[#687068] text-[13px] mt-[2px]">Pre-configure the annual leave credit that takes effect next year.</p>
+
+        <form asp-action="ConfigureNextYear" method="post" class="mt-[1.5pc]">
+            <div asp-validation-summary="ModelOnly" class="text-[#dc2626] text-[13px] mb-[1pc]"></div>
+            <div class="mb-[1.2pc]">
+                <label asp-for="NextYearAccrual.AccrualAmount" class="block font-[600] text-[14px] mb-[4px]">Annual Accrual Amount (Days)</label>
+                <input asp-for="NextYearAccrual.AccrualAmount" type="number" min="1" max="365" class="w-full h-[2.8pc] border border-[#d4d4d8] rounded-[8px] px-[12px] text-[14px] focus:border-[#ef001f] focus:outline-none" />
+                <span asp-validation-for="NextYearAccrual.AccrualAmount" class="text-[#dc2626] text-[12px]"></span>
+            </div>
+            <button type="submit" class="bg-[#ef001f] text-white rounded-[8px] px-[18px] py-[10px] font-[600] text-[14px] hover:bg-[#c9001a] transition-colors">
+                Save @Model.Overview.NextYear Configuration
+            </button>
+        </form>
+
+        @if (Model.Overview.NextYearSetting is not null)
+        {
+            <div class="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-[8px] p-[10px] mt-[1.2pc] text-[13px]">
+                Currently saved amount for @Model.Overview.NextYear: <strong>@Model.Overview.NextYearSetting.AccrualAmount days</strong>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="bg-[#fff7ed] border border-[#fed7aa] text-[#9a3412] rounded-[8px] p-[12px] text-[13px]">
+    <strong>Policy Notice:</strong> Unused employee leave balances carry forward into each new operational year. Batch accrual can only be executed once per calendar year.
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

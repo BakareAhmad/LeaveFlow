@@ -1,0 +1,45 @@
+@model List<AuditLogDto>
+
+@{
+    ViewData["Title"] = "Audit Log";
+}
+
+<div class="mb-[1.5pc]">
+    <h1 class="text-[28px] font-[700]">Audit Log</h1>
+    <p class="text-[#687068] mt-[4px]">Chronological record of important operational actions and security events.</p>
+</div>
+
+@if (Model is null || Model.Count == 0)
+{
+    <div class="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-[8px] p-[16px] text-[14px]">No audit logs are available.</div>
+}
+else
+{
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-[13px] min-w-[40pc]">
+                <thead class="bg-[#f4f4f5]">
+                    <tr>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Time (UTC)</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Actor</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Action</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Entity</th>
+                        <th class="text-left p-[12px] text-[13px] font-[600] text-[#52525b]">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in Model)
+                    {
+                        <tr class="border-b border-[#e4e4e7] hover:bg-[#fafafa] transition-colors">
+                            <td class="p-[12px] text-[#687068] whitespace-nowrap">@a.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
+                            <td class="p-[12px] font-[600] whitespace-nowrap">@a.Actor</td>
+                            <td class="p-[12px] whitespace-nowrap"><span class="bg-[#f4f4f5] text-[#3f3f46] rounded-[6px] px-[8px] py-[3px] text-[12px] font-[600]">@a.Action</span></td>
+                            <td class="p-[12px] whitespace-nowrap">@a.EntityType</td>
+                            <td class="p-[12px] text-[#687068]">@(string.IsNullOrWhiteSpace(a.Details) ? "—" : a.Details)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

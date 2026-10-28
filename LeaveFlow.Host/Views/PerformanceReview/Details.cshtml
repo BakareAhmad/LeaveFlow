@@ -1,0 +1,184 @@
+@model PerformanceReviewDto
+
+@{
+    ViewData["Title"] = $"{Model.EmployeeName} - Performance Review";
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    var currentEmployeeId = User.FindFirst("EmployeeId")?.Value;
+    var isAssignee = string.Equals(Model.EmployeeId.ToString(), currentEmployeeId, StringComparison.OrdinalIgnoreCase);
+    var isManager = User.IsInRole(RoleNames.Manager) && !isAssignee;
+    var isAdmin = User.IsInRole(RoleNames.Admin);
+
+    var backUrl = (isManager || isAdmin)
+        ? Url.Action("DepartmentReport", new { cycleId = Model.CycleId, departmentId = Model.DepartmentId })
+        : Url.Action("MyReviews");
+
+    var backLabel = (isManager || isAdmin) ? "Department Report" : "My Performance Reviews";
+
+    var statusBadge = Model.Status switch
+    {
+        PerformanceReviewStatus.Submitted => "bg-[#dcfce7] text-[#15803d]",
+        PerformanceReviewStatus.Completed => "bg-[#dbeafe] text-[#1d4ed8]",
+        PerformanceReviewStatus.Draft => "bg-[#fef3c7] text-[#92400e]",
+        _ => "bg-[#f4f4f5] text-[#52525b]"
+    };
+}
+
+<div class="mb-[1.5pc] flex flex-wrap items-center justify-between gap-[10px]">
+    <div>
+        <a href="@backUrl" class="text-[#687068] text-[13px] hover:text-[#18181b]">← Back to @backLabel</a>
+        <h1 class="text-[28px] font-[700] mt-[4px]">@Model.EmployeeName — Performance Review</h1>
+        <p class="text-[#687068]">Cycle: <span class="font-[600] text-[#18181b]">@Model.CycleName</span> (@Model.StartDate.ToString("dd MMM yyyy") – @Model.EndDate.ToString("dd MMM yyyy"))</p>
+    </div>
+    <div class="flex items-center gap-[10px]">
+        <span class="@statusBadge rounded-[6px] px-[10px] py-[5px] text-[13px] font-[600]">@Model.Status</span>
+        <a href="@backUrl" class="border border-[#d4d4d8] rounded-[8px] px-[14px] py-[8px] font-[600] text-[#52525b] hover:bg-[#f4f4f5]">Back</a>
+    </div>
+</div>
+
+<!-- Employee Information Overview -->
+<div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc] mb-[1.5pc]">
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-[1pc]">
+        <div>
+            <p class="text-[12px] font-[600] text-[#687068]">EMPLOYEE</p>
+            <p class="text-[15px] font-[700] mt-[3px]">@Model.EmployeeName</p>
+            <p class="text-[12px] text-[#71717a]">Role: @Model.EmployeeRole</p>
+        </div>
+        <div>
+            <p class="text-[12px] font-[600] text-[#687068]">DEPARTMENT</p>
+            <p class="text-[15px] font-[700] mt-[3px]">@Model.Department</p>
+        </div>
+        <div>
+            <p class="text-[12px] font-[600] text-[#687068]">REVIEWING MANAGER</p>
+            <p class="text-[15px] font-[700] mt-[3px]">@(string.IsNullOrWhiteSpace(Model.ReviewerName) ? "Department Manager" : Model.ReviewerName)</p>
+        </div>
+        <div>
+            <p class="text-[12px] font-[600] text-[#687068]">REVIEW PERIOD</p>
+            <p class="text-[14px] font-[600] mt-[3px]">@Model.StartDate.ToString("dd MMM yyyy") – @Model.EndDate.ToString("dd MMM yyyy")</p>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-[1.5pc] mb-[1.5pc]">
+    <!-- 1. Task Performance Metrics -->
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc]">
+        <div class="flex items-center justify-between border-b border-[#e4e4e7] pb-[10px] mb-[1pc]">
+            <div>
+                <h3 class="text-[17px] font-[700]">Task Performance Metrics</h3>
+                <p class="text-[12px] text-[#687068]">Observed from Task Management records in cycle period.</p>
+            </div>
+            <span class="h-[2.2pc] w-[2.2pc] bg-[#eff6ff] text-[#1d4ed8] rounded-[6px] flex items-center justify-center font-[700] text-[12px]">T</span>
+        </div>
+
+        @if (Model.TaskPerformance.HasCompletedTasks)
+        {
+            <div class="grid grid-cols-2 gap-[10px] mb-[1pc]">
+                <div class="border border-[#e4e4e7] rounded-[8px] p-[10px] bg-[#fafafa]">
+                    <p class="text-[11px] font-[600] text-[#71717a]">TOTAL COMPLETED TASKS</p>
+                    <p class="text-[22px] font-[700] mt-[2px]">@Model.TaskPerformance.TotalCompletedTasks</p>
+                </div>
+                <div class="border border-[#e4e4e7] rounded-[8px] p-[10px] bg-[#fafafa]">
+                    <p class="text-[11px] font-[600] text-[#71717a]">ON-TIME COMPLETION</p>
+                    <p class="text-[22px] font-[700] mt-[2px] text-[#15803d]">@Model.TaskPerformance.OnTimeCompletionPercentage?.ToString("0.#")%</p>
+                </div>
+                <div class="border border-[#e4e4e7] rounded-[8px] p-[10px] bg-[#fafafa]">
+                    <p class="text-[11px] font-[600] text-[#71717a]">COMPLETED ON TIME</p>
+                    <p class="text-[18px] font-[700] mt-[2px] text-[#15803d]">@Model.TaskPerformance.CompletedOnTime</p>
+                </div>
+                <div class="border border-[#e4e4e7] rounded-[8px] p-[10px] bg-[#fafafa]">
+                    <p class="text-[11px] font-[600] text-[#71717a]">COMPLETED LATE</p>
+                    <p class="text-[18px] font-[700] mt-[2px] text-[#dc2626]">@Model.TaskPerformance.CompletedLate</p>
+                </div>
+            </div>
+
+            <div class="bg-[#f0fdf4] border border-[#bbf7d0] text-[#166534] rounded-[8px] p-[10px] text-[13px] font-[600]">
+                @Model.TaskPerformance.SummaryText
+            </div>
+        }
+        else
+        {
+            <div class="bg-[#f4f4f5] border border-[#e4e4e7] text-[#71717a] rounded-[8px] p-[14px] text-[13px] text-center my-[1pc]">
+                No completed tasks during this review period.
+            </div>
+        }
+    </div>
+
+    <!-- 2. Leave Activity Metrics -->
+    <div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc]">
+        <div class="flex items-center justify-between border-b border-[#e4e4e7] pb-[10px] mb-[1pc]">
+            <div>
+                <h3 class="text-[17px] font-[700]">Non-Annual Leave Activity</h3>
+                <p class="text-[12px] text-[#687068]">Observed from Leave Management records in cycle period.</p>
+            </div>
+            <span class="h-[2.2pc] w-[2.2pc] bg-[#fff1f3] text-[#ef001f] rounded-[6px] flex items-center justify-center font-[700] text-[12px]">L</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-[10px] mb-[1pc]">
+            <div class="border border-[#e4e4e7] rounded-[8px] p-[10px] bg-[#fafafa]">
+                <p class="text-[11px] font-[600] text-[#71717a]">NON-ANNUAL REQUESTS</p>
+                <p class="text-[22px] font-[700] mt-[2px]">@Model.LeaveActivity.TotalNonAnnualLeaveRequests</p>
+            </div>
+            <div class="border border-[#e4e4e7] rounded-[8px] p-[10px] bg-[#fafafa]">
+                <p class="text-[11px] font-[600] text-[#71717a]">APPROVED</p>
+                <p class="text-[22px] font-[700] mt-[2px] text-[#15803d]">@Model.LeaveActivity.Approved</p>
+            </div>
+            <div class="border border-[#e4e4e7] rounded-[8px] p-[10px] bg-[#fafafa]">
+                <p class="text-[11px] font-[600] text-[#71717a]">REJECTED</p>
+                <p class="text-[22px] font-[700] mt-[2px] text-[#dc2626]">@Model.LeaveActivity.Rejected</p>
+            </div>
+        </div>
+
+        <div class="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-[8px] p-[10px] text-[12px]">
+            * Note: Annual Leave is excluded from performance appraisal statistics.
+        </div>
+    </div>
+</div>
+
+<!-- 3. Manager Review Comment Section -->
+<div class="bg-white border border-[#e4e4e7] rounded-[10px] shadow p-[1.5pc]">
+    <div class="border-b border-[#e4e4e7] pb-[10px] mb-[1pc]">
+        <h3 class="text-[18px] font-[700]">Manager Review Comment</h3>
+        <p class="text-[13px] text-[#687068]">Manager's comment about this employee's performance for the cycle.</p>
+    </div>
+
+    @if (isManager && !Model.IsDepartmentReportSubmitted)
+    {
+        <form asp-action="SaveReview" asp-route-id="@Model.Id" method="post">
+            <div class="mb-[1pc]">
+                <label class="block text-[13px] font-[600] text-[#52525b] mb-[4px]">Manager Review Feedback</label>
+                <textarea name="ManagerComments" required rows="5" placeholder="e.g. The employee maintained a strong task completion rate throughout the review period and consistently delivered assigned work within the expected deadlines. Overall performance has been satisfactory." class="w-full border border-[#d4d4d8] rounded-[8px] p-[10px] text-[14px] focus:outline-none focus:border-[#ef001f]">@Model.ManagerComments</textarea>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-[10px]">
+                <p class="text-[12px] text-[#71717a]">
+                    You can save and update this comment anytime before submitting the final Department Review Report.
+                </p>
+                <div class="flex gap-[8px]">
+                    <button type="submit" name="MarkAsCompleted" value="true" class="bg-[#ef001f] text-white rounded-[8px] px-[16px] py-[9px] font-[600] text-[14px] hover:bg-[#c9001a]">
+                        Save & Complete Review
+                    </button>
+                    <a href="@backUrl" class="border border-[#d4d4d8] rounded-[8px] px-[14px] py-[9px] font-[600] text-[#52525b] hover:bg-[#f4f4f5]">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </form>
+    }
+    else
+    {
+        @if (!string.IsNullOrWhiteSpace(Model.ManagerComments))
+        {
+            <div class="bg-[#fafafa] border border-[#e4e4e7] rounded-[8px] p-[1.2pc]">
+                <p class="text-[14px] text-[#18181b] leading-[1.7] whitespace-pre-line">@Model.ManagerComments</p>
+                <p class="text-[12px] text-[#71717a] mt-[1pc]">
+                    Reviewed by @(string.IsNullOrWhiteSpace(Model.ReviewerName) ? "Department Manager" : Model.ReviewerName) on @Model.ManagerReviewedAt?.ToString("dd MMM yyyy HH:mm")
+                </p>
+            </div>
+        }
+        else
+        {
+            <div class="bg-[#f4f4f5] border border-[#e4e4e7] text-[#71717a] rounded-[8px] p-[14px] text-[13px] text-center">
+                Review comment has not been entered yet by the department manager.
+            </div>
+        }
+    }
+</div>
